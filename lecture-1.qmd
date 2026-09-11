@@ -11,52 +11,52 @@ editor: visual
 
 ## A félév felépítése
 
-- 12 alkalom, 90 perc/alkalom
-- témák:
-  - Hipotézisvizsgálat: két változó közötti asszociáció
-  - Modellépítés: regressziós modellek alapjai
-- számonkérés: írásbeli (nyitott könyv) vizsga
-- kommunikáció: morauszki.andras\@gmail.com
+-   12 alkalom, 90 perc/alkalom
+-   témák:
+    -   Hipotézisvizsgálat: két változó közötti asszociáció
+    -   Modellépítés: regressziós modellek alapjai
+-   számonkérés: írásbeli (nyitott könyv) vizsga
+-   kommunikáció: morauszki.andras\@gmail.com
 
 ## Módszerek
 
-- Függetlenségvizsgálat (kereszttábla): alacsony mérési szintű változók közötti asszociáció
-- Korrelációszámítás: magas mérési szintű változók közötti asszociáció
-- Lineáris regresszió: modellezés és előrejelzés
-- Egyszempontos varianciaelemzés: csoportátlagok modellalapú összevetése
+-   Függetlenségvizsgálat (kereszttábla): alacsony mérési szintű változók közötti asszociáció
+-   Korrelációszámítás: magas mérési szintű változók közötti asszociáció
+-   Lineáris regresszió: modellezés és előrejelzés
+-   Egyszempontos varianciaelemzés: csoportátlagok modellalapú összevetése
 
 ## Előkövetelmények
 
-- Alapvető algebra: képletek megértése és használata
-- Ábrák és táblázatok olvasása
-- Valószínűségelmélet alapjai: valószínűség, feltételes valószínűség, valószínűségi változók
-- Eloszlások: sűrűségfüggvény, eloszlásfüggvény
-- Statisztika alapjai: leíró és induktív statisztika
-  - Leíró statisztikák
-  - Intervallumbecslés
-  - Hipotézisvizsgálat
+-   Alapvető algebra: képletek megértése és használata
+-   Ábrák és táblázatok olvasása
+-   Valószínűségelmélet alapjai: valószínűség, feltételes valószínűség, valószínűségi változók
+-   Eloszlások: sűrűségfüggvény, eloszlásfüggvény
+-   Statisztika alapjai: leíró és induktív statisztika
+    -   Leíró statisztikák
+    -   Intervallumbecslés
+    -   Hipotézisvizsgálat
 
 ## Célkitűzések
 
-- Kutatási kérdés "lefordítása" ellenőrizhető hipotézisekre
-- Megfelelő módszer kiválasztása és elvégzése
-- Módszer feltételei teljesülésének a felmérése
-- A próba/modell eredményeinek értelmezése
-- Mi következik és mi nem az eredményekből
-  - Együttjárás és okság megkülönböztetése
-  - (Nem) szignifikáns eredmények jelentése, szignifikancia vs. erősség
-- Eredmények közlése másokkal
+-   Kutatási kérdés "lefordítása" ellenőrizhető hipotézisekre
+-   Megfelelő módszer kiválasztása és elvégzése
+-   Módszer feltételei teljesülésének a felmérése
+-   A próba/modell eredményeinek értelmezése
+-   Mi következik és mi nem az eredményekből
+    -   Együttjárás és okság megkülönböztetése
+    -   (Nem) szignifikáns eredmények jelentése, szignifikancia vs. erősség
+-   Eredmények közlése másokkal
 
 # Ismétlés
 
 ## Általános
 
-- populáció/minta
-- megfigyelés/kísérlet
-- elemzési/megfigyelési egység
-- paraméter/statisztika
-- változók, típusaik, mérési szintek
-- független (magyarázó) és függő változók
+-   populáció/minta
+-   megfigyelés/kísérlet
+-   elemzési/megfigyelési egység
+-   paraméter/statisztika
+-   változók, típusaik, mérési szintek
+-   független (magyarázó) és függő változók
 
 ## Központi kérdés
 
@@ -64,38 +64,38 @@ editor: visual
 
 Cél:
 
-- megalapozott állítások
-- minta alapján
+- megalapozott állítások 
+- minta alapján 
 - szélesebb populációra vonatkozóan
 
 ## Alaphelyzet
 
-- mintában megfigyelhető különbség/összefüggés
-- kérdés: adódhat-e ez a véletlen mintavétel jellegéből, vagy általánosítható a populációra?
-- miért merül fel egyáltalán ez a kérdés?
+-   mintában megfigyelhető különbség/összefüggés
+-   kérdés: adódhat-e ez a véletlen mintavétel jellegéből, vagy általánosítható a populációra?
+-   miért merül fel egyáltalán ez a kérdés?
 
 ## Bizonytalanság
 
-- egy másik mintából más értékeket kapnánk
+-   egy másik mintából más értékeket kapnánk
 
-- további kérdések:
+-   további kérdések:
 
-  - milyen jellegű az összefüggés?
-  - mennyire erős az összefüggés?
-  - oksági kapcsolatról van szó vagy csak együttjárásról?
-  - szerepet játszhatnak egyéb tényezők is?
+    -   milyen jellegű az összefüggés?
+    -   mennyire erős az összefüggés?
+    -   oksági kapcsolatról van szó vagy csak együttjárásról?
+    -   szerepet játszhatnak egyéb tényezők is?
 
-- a statisztika segítségével számszerűsíthető a kapcsolat és a bizonytalanság is
+-   a statisztika segítségével számszerűsíthető a kapcsolat és a bizonytalanság is
 
 ## Hipotézisvizsgálat
 
-- nullhipotézis, ellenhipotézis
-- szignifikanciaszint
-- tesztstatisztika
-- nulleloszlás
-- p érték
-- döntés, első- és másodfajú hiba
-- próba ereje, hatásnagyság
+-   nullhipotézis, ellenhipotézis
+-   szignifikanciaszint
+-   tesztstatisztika
+-   nulleloszlás
+-   p érték
+-   döntés, első- és másodfajú hiba
+-   próba ereje, hatásnagyság
 
 ## Példa
 
@@ -111,14 +111,16 @@ Mi lesz az ellenhipotézis?
 
 ## Hipotézisek
 
-$$H_0: \mu_1 = \mu_2 \\
-H_1: \mu_1 \neq \mu_2$$
+$$
+H_0: \mu_1 = \mu_2 \\
+H_1: \mu_1 \neq \mu_2
+$$
 
-- $\mu$ és nem $\overline{x}$
+-   $\mu$ és nem $\overline{x}$
 
-- lehetne \< vagy \> is (egyoldali próba)
+-   lehetne \< vagy \> is (egyoldali próba)
 
-- Hogyan fogalmaznák ezt meg "emberi nyelven"?
+-   Hogyan fogalmaznák ezt meg "emberi nyelven"?
 
 ## Szignifikanciaszint
 
@@ -140,7 +142,9 @@ Mi következik ebből?
 
 Pl. Független mintás t-próba esetén
 
-$$t = \frac{\overline{x_1}-\overline{x_2}}{s_k*\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}$$
+$$
+t = \frac{\overline{x_1}-\overline{x_2}}{s_k*\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}
+$$
 
 ## Tesztstatisztika eloszlása
 
@@ -174,9 +178,9 @@ A nullhipotézis lehet igaz és hamis.
 
 A döntésünk lehet az, hogy elvetjük, vagy az, hogy nem sikerül elvetni.
 
-Kétféle hibát követhetünk el:
+Kétféle hibát követhetünk el: 
 
-- elvethetünk igaz nullhipotézist
+- elvethetünk igaz nullhipotézist 
 - nem vetünk el hamis nullhipotézist
 
 ## Első- és másodfajú hiba
@@ -185,14 +189,14 @@ A nullhipotézis lehet igaz és hamis.
 
 A döntésünk lehet az, hogy elvetjük, vagy az, hogy nem sikerül elvetni.
 
-Kétféle hibát követhetünk el:
+Kétféle hibát követhetünk el: 
 
-- elvethetünk igaz nullhipotézist → elsőfajú hiba
+- elvethetünk igaz nullhipotézist → elsőfajú hiba 
 - nem vetünk el hamis nullhipotézist → másodfajú hiba
 
 ## Próba ereje
 
-Annak a valószínűsége, hogy *adott nagyságú eltérést* kimutatunk egy bizonyos nagyságú mintából, meghatározott szignifikanciaszint mellett.
+Annak a valószínűsége, hogy _adott nagyságú eltérést_ kimutatunk egy bizonyos nagyságú mintából, meghatározott szignifikanciaszint mellett.
 
 A másodfajú hiba = 1 - próba ereje
 
@@ -201,9 +205,7 @@ A másodfajú hiba = 1 - próba ereje
 ## Kontakt
 
 ### Honlap
-
 Még a szemináriumhoz készült, és mérsékelten naprakész, de legalább van: [Itt](https://morauszkia.github.io/stat2sz)
 
 ### E-mail
-
-[morauszki.andras\@gmail.com](mailto:morauszki.andras@gmail.com)
+[morauszki.andras@gmail.com](mailto:morauszki.andras@gmail.com)
