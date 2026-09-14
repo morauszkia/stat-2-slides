@@ -1,0 +1,408 @@
+---
+title: "Statisztika 2."
+subtitle: "2. előadás: Kereszttábla"
+author: "Morauszki András"
+format: 
+  revealjs:
+    theme: league
+    transition: slide
+    incremental: true
+editor: visual
+---
+
+# Kereszttábla-elemzés
+
+## Alapkérdés
+
+```{r}
+library(dplyr)
+library(janitor)
+library(huxtable)
+
+source("./util/format_crosstabs.R")
+```
+
+::: r-fit-text
+Összefügg-e a két alacsony\
+mérési szintű változó\
+az alapsokaságban?
+:::
+
+## Példák
+
+Összefügg...
+
+-   az iskolai végzettség és a választási hajlandóság?
+-   az évfolyam és hogy hol lakik (otthon, albérlet, kollégium)
+-   a felekezet és a túlvilágban való hit?
+-   a szak és az egyetemmel való elégedettség?
+-   ...
+
+## Alaphelyzet
+
+-   független megfigyelések
+-   (egyszerű) véletlen minta
+-   két alacsony mérési szintű (nominális, ordinális) változó
+
+## Célok
+
+-   kétváltozós kereszttáblák olvasása
+-   feltételes valószínűségek kiszámítása és értelmezése
+-   hipotézisek megfogalmazása
+-   függetlenség esetén várható esetszámok kiszámítása
+-   $\chi^2$ próba kiszámítása és értelmezése
+
+# Menete
+
+## Emlékeztető: Hipotézisvizsgálat menete
+
+1.  kutatási kérdés
+2.  próba kiválasztása
+3.  hipotézisek
+4.  tesztstatisztika
+5.  döntés és értelmezés
+6.  döntés függvényében további vizsgálatok
+
+## Kutatási kérdés
+
+Összefügg-e az iskolai végzettség azzal, hogy valaki elmegy-e választani?
+
+Változók:
+
+-   iskolai végzettség (alacsony / közepes / magas)
+-   szavazott-e a legutóbbi parlamenti választásokon (igen / nem)
+
+## Próba kiválasztása {auto-animate="true" transition="none"}
+
+Változók összefüggése a kérdés.
+
+<br/>
+
+A változóink mérési szintje:
+
+::: nonincremental
+-   befejezett iskolai végzettség: [ordinális]{.fragment}
+-   szavazott-e: [nominális, bináris (*dummy*)]{.fragment}
+:::
+
+::: fragment
+A kérdésnek és a változóknak a kereszttábla-elemzés felel meg
+:::
+
+## A hipotézisek és szignifikanciaszint
+
+. . .
+
+$H_0$: A két változó egymástól független
+
+. . .
+
+$H_1$: A két változó nem független
+
+<br/>
+
+. . .
+
+Független: az egyik ismerete nem jelent plusz információt a másik becsléséhez
+
+Függő: az egyik ismeretében jobban tudjuk becsülni a másikat
+
+<br/>
+
+. . .
+
+Válasszuk a szokásos 5%-os szintet.
+
+# Elemzés
+
+## Kiindulási pont
+
+```{r}
+n_low = 40
+n_mid = 110
+n_hi = 50
+
+yes_low = 20
+yes_mid = 80
+yes_hi = 40
+
+# row marginal counts
+edu <- c(rep("alacsony", n_low), rep("közepes", n_mid), rep("magas", n_hi))
+# cell counts rowwise
+vote <- c(rep("választott", yes_low), rep("nem választott", n_low - yes_low), 
+          rep("választott", yes_mid), rep("nem választott", n_mid - yes_mid),
+          rep("választott", yes_hi), rep("nem választott", n_hi - yes_hi))
+data <- data.frame(edu = edu, vote = vote)
+format_as_crosstab(data, "edu", "vote")
+```
+
+## Százalékolás I
+
+```{r}
+format_as_crosstab(data, "edu", "vote", cells="row")
+```
+
+## Százalékolás II
+
+```{r}
+format_as_crosstab(data, "edu", "vote", cells="col")
+```
+
+## Százalékolás III
+
+```{r}
+format_as_crosstab(data, "edu", "vote", cells="all")
+```
+
+## Elemzés
+
+```{r}
+format_as_crosstab(data, "edu", "vote", cells="row")
+```
+
+## Vizualizáció
+
+```{r}
+visualize_crosstab(data, "edu", "vote", "Végzettség", "Választott-e?")
+```
+
+# Próba kiszámítása
+
+## Függetlenségvizsgálat {.smaller}
+
+$\chi^2$ (Khí-négyzet) próba:
+
+$$
+\chi^2=\sum_{i=1}^{s}\sum_{j=1}^{o}\frac{(m_{ij}-e_{ij})^2}{e_{ij}}
+$$
+
+ahol:
+
+::: nonincremental
+-   *i* és *j* az adott sor és oszlop száma
+-   *s* a táblázat sorainak száma (összegző sor nélkül)
+-   *o* a táblázat oszlopainak száma (összegző oszlop nélkül)
+-   $m_{ij}$ az *i.* sor és *j.* oszlopban lévő megfigyelt érték
+-   $e_{ij}$ pedig az ugyanarra a cellára eső elméleti (várt) érték
+:::
+
+## Függetlenség
+
+-   az egyik változó értékének ismerete nem segíti a másik becslését
+-   a feltételes valószínűségek minden csoportban azonosak → azonosak a teljes mintával is
+
+. . .
+
+$$
+P(A_1|B_1) = P(A_1|B_2) = ... = P(A_1)
+$$
+
+## Alkalmazva {.smaller}
+
+```{r}
+format_as_crosstab(data, "edu", "vote")
+```
+
+$$
+\begin{align}
+P(NV) &= ?  \\
+P(NV|A) &= ? \\
+e_{11} &= ?
+\end{align}
+$$
+
+## Alkalmazva {.smaller}
+
+```{r}
+format_as_crosstab(data, "edu", "vote")
+```
+
+$$
+\begin{align}
+P(NV) &= \frac{m_{*1}}{N}  \\
+P(NV|A) &= \frac{m_{*1}}{N} \text{ (Függetlenség esetén igaz)} \\
+e_{11} &= \frac{m_{1*}\ast m_{*1}}{N}
+\end{align}
+$$
+
+## Alkalmazva {.smaller}
+
+```{r}
+format_as_crosstab(data, "edu", "vote")
+
+m <- table(data$edu, data$vote)
+n <- sum(m)
+```
+
+$$
+\begin{align}
+P(NV|A)=P(NV) &= \frac{`r sum(m[,1])`}{`r n`}  \\
+e_{11} &= \frac{`r sum(m[1,])`*`r sum(m[,1])`}{`r n`}
+\end{align}
+$$
+
+## Várható esetszámok általánosan
+
+$$
+e_{ij} = \frac{m_{i*}*m_{*j}}{N}
+$$
+
+<br />
+
+::: nonincremental
+-   $i$ és $j$ az adott sor és oszlop száma
+-   $m_{i*}$ az i. sor összege
+-   $m_{*j}$ a j. oszlop összege
+-   $N$ az összelemszám
+:::
+
+## Várható esetszámok {.smaller}
+
+```{r, results='asis'}
+formulas <- c()
+
+for (i in seq_len(nrow(m))) {
+  for (j in seq_len(ncol(m))) {
+    row_i = sum(m[i,])
+    col_j = sum(m[,j])
+    value <- row_i * col_j / n
+    formulas <- c(formulas,
+                  sprintf("e_{%d%d}&=\\frac{m_{%d*}\\ast m_{*%d}}{N}=\\frac{%d \\ast %d}{%d}&=%.2g",
+                          i, j,
+                          i, j,
+                          sum(m[i,]),
+                          sum(m[,j]),
+                          n,
+                          value))
+  }
+}
+
+cat(
+  paste0("$$\n\\begin{align}", paste(formulas, collapse = "\\\\\n"), "\\end{align}\n$$")
+)
+```
+
+## Várható esetszámok
+
+```{r}
+format_as_crosstab(data, "edu", "vote", cells = "expected")
+```
+
+Alkalmazás feltételei:
+
+- minden $e_i \ge 1$
+- max. 20% $e_i < 5$
+
+## Próba
+
+$$
+\begin{align}
+\chi^2&=\sum_{i=1}^{s}\sum_{j=1}^{o}\frac{(m_{ij}-e_{ij})^2}{e_{ij}} \\
+df &= (s-1)\ast(o-1)
+\end{align}
+$$
+
+## Behelyettesítve {.scrollable}
+
+```{r, results='asis'}
+cat(chi2_formula(data, "edu", "vote", per_line = 2))
+cat(df_formula(data, "edu", "vote"))
+```
+
+## χ² eloszlás
+
+::: r-fit-text
+[Interaktív vizualizáció](https://statisticsfundamentals.com/visual-tools/chi-square-distribution-visualizer/)
+:::
+
+. . .
+
+Ez alapján az összefüggés szignifikáns.
+
+. . .
+
+Mit jelent ez?
+
+## Az összefüggés ereje
+
+A szignifikáns összefüggés még nem feltétlenül erős is!
+
+. . .
+
+Az összefüggés erejének becslésére asszociációs mérőszámokat használunk.
+
+. . .
+
+A legfontosabbak a $\phi$ és a Cramer-féle V
+
+## Phi (φ)
+
+Olyan kereszttáblák esetében használható, amelyek valamelyik dimenziója 2.
+
+. . .
+
+Képlete
+
+$$
+\phi=\sqrt{\frac{\chi^2}{N}}
+$$
+
+. . .
+
+Értéke 0 (függetlenség) és 1 (függvényszerű kapcsolat) közé esik
+
+## Phi (φ)
+
+```{r}
+tab <- table(data$edu, data$vote)
+test <- chisq.test(tab, correct = FALSE)
+chi2 <- sprintf("%.2f", test$statistic)
+n <- sum(tab)
+phi <- sprintf("%.2f", sqrt(test$statistic/n))
+```
+
+$$
+\phi=\sqrt{\frac{`r chi2`}{`r n`}}=`r phi`
+$$
+
+## Cramer-féle V
+
+Ha a kereszttábla mindkét dimenziója legalább 3, a φ értéke 1-nél nagyobb is lehet.
+
+. . .
+
+Ezért egy apró korrekciót alkalmazva kapjuk:
+
+$$
+V=\sqrt{\frac{\chi^2}{N*min(s-1, o-1)}}=\frac{\phi}{\sqrt{min(s-1,o-1)}}
+$$
+
+## Eredmény közlése
+
+- változók
+- próba
+- eredmény, szabadságfok, p-érték
+- statisztikai következtetés
+- százalékok alapján az összefüggés jellege
+- összefüggés ereje
+
+# Összegzés
+
+## A kereszttábla-elemzés
+
+- alacsony mérési szintű változók
+- összefüggése
+- független megfigyelések
+- kellően nagy várható értékek
+
+## Menete
+
+- százalékolás &rarr; összefüggés elemzése
+- elméleti kereszttábla &rarr; &chi;&sup2; próba &rarr; döntés
+- kapcsolat erejének kiszámítása
+
+## Amire figyelni kell
+
+- szignifikáns $\ne$ erős
+- együttjárás vs. okság
+- alternatív magyarázatok, látszatösszefüggések, közvetett összefüggések, stb.
