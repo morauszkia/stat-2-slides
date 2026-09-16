@@ -1,6 +1,6 @@
 ---
 title: "Statisztika 2."
-subtitle: "2. előadás: Khí-négyzet-próbák"
+subtitle: "2. előadás: Kereszttábla"
 author: "Morauszki András"
 format: 
   revealjs:
@@ -22,37 +22,35 @@ library(huxtable)
 source("./util/format_crosstabs.R")
 ```
 
-::: {.r-fit-text}
-
-Összefügg-e a két alacsony  
-mérési szintű változó  
+::: r-fit-text
+Összefügg-e a két alacsony\
+mérési szintű változó\
 az alapsokaságban?
-
 :::
 
-## Példák 
+## Példák
 
 Összefügg...
 
-- az iskolai végzettség és a választási hajlandóság?
-- az évfolyam és hogy hol lakik (otthon, albérlet, kollégium)
-- a felekezet és a túlvilágban való hit?
-- a szak és az egyetemmel való elégedettség?
-- ...
+-   az iskolai végzettség és a választási hajlandóság?
+-   az évfolyam és hogy hol lakik (otthon, albérlet, kollégium)
+-   a felekezet és a túlvilágban való hit?
+-   a szak és az egyetemmel való elégedettség?
+-   ...
 
-## Alaphelyzet 
+## Alaphelyzet
 
-- független megfigyelések
-- (egyszerű) véletlen minta
-- két alacsony mérési szintű (nominális, ordinális) változó
+-   független megfigyelések
+-   (egyszerű) véletlen minta
+-   két alacsony mérési szintű (nominális, ordinális) változó
 
 ## Célok
 
-- kétváltozós kereszttáblák olvasása
-- feltételes valószínűségek kiszámítása és értelmezése
-- hipotézisek megfogalmazása
-- függetlenség esetén várható esetszámok kiszámítása
-- $\chi^2$ próba kiszámítása és értelmezése
+-   kétváltozós kereszttáblák olvasása
+-   feltételes valószínűségek kiszámítása és értelmezése
+-   hipotézisek megfogalmazása
+-   függetlenség esetén várható esetszámok kiszámítása
+-   $\chi^2$ próba kiszámítása és értelmezése
 
 # Menete
 
@@ -109,7 +107,6 @@ $H_1$: A két változó nem független
 <br/>
 
 . . .  
-
 
 Független: az egyik ismerete nem jelent plusz információt a másik becsléséhez
 
@@ -235,7 +232,6 @@ e_{11} &= \frac{m_{1*}\ast m_{*1}}{N}
 \end{align}
 $$
 
-
 ## Alkalmazva {.smaller}
 
 ```{r}
@@ -300,6 +296,11 @@ cat(
 ```{r}
 format_as_crosstab(data, "edu", "vote", cells = "expected")
 ```
+
+Alkalmazás feltételei:
+
+- minden $e_i \ge 1$
+- max. 20% $e_i < 5$
 
 ## Próba
 
@@ -387,3 +388,32 @@ $$
 V=\sqrt{\frac{\chi^2}{N*min(s-1, o-1)}}=\frac{\phi}{\sqrt{min(s-1,o-1)}}
 $$
 
+## Eredmény közlése
+
+- változók
+- próba
+- eredmény, szabadságfok, p-érték
+- statisztikai következtetés
+- százalékok alapján az összefüggés jellege
+- összefüggés ereje
+
+# Összegzés
+
+## A kereszttábla-elemzés
+
+- alacsony mérési szintű változók
+- összefüggése
+- független megfigyelések
+- kellően nagy várható értékek
+
+## Menete
+
+- százalékolás &rarr; összefüggés elemzése
+- elméleti kereszttábla &rarr; &chi;&sup2; próba &rarr; döntés
+- kapcsolat erejének kiszámítása
+
+## Amire figyelni kell
+
+- szignifikáns $\ne$ erős
+- együttjárás vs. okság
+- alternatív magyarázatok, látszatösszefüggések, közvetett összefüggések, stb.
