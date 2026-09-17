@@ -1,0 +1,99 @@
+---
+title: "Statisztika 2."
+subtitle: "3. előadás: Kereszttábla és egyéb khí-négyzet-próbák"
+author: "Morauszki András"
+format: 
+  revealjs:
+    theme: league
+    transition: slide
+    incremental: true
+---
+
+```{r}
+library(dplyr)
+
+source("./util/format_crosstabs.R")
+```
+
+# Kereszttábla-elemzés
+
+## Ismétlés
+
+- alacsony mérési szintű változók
+- közötti összefüggés vizsgálatára
+- ha kellően sok független megfigyelésünk van
+
+## Menete
+
+- hipotézisek
+- százalékolás
+- várható esetszámok
+- &chi;&sup2;-próba
+- asszociációs mérőszámok (&phi; V)
+
+## Óvatosság
+
+- asszociáció nem okság
+- szignifikáns nem feltétlenül erős
+
+# További asszociációs mérőszámok
+
+## Példa
+
+```{r}
+eng_no = 50
+eng_basic = 80
+eng_good = 70
+fr_if_no = c(30, 10, 10)
+fr_if_basic = c(30, 20, 30)
+fr_if_good = c(40, 10, 20)
+
+eng <- c(rep("angol nem", eng_no),
+         rep("angol alap", eng_basic),
+         rep("angol jól", eng_good)) %>% 
+  factor(levels=c("angol nem", "angol alap", "angol jól"))
+fr <- c(rep("francia nem", fr_if_no[1]),
+        rep("francia alap", fr_if_no[2]),
+        rep("francia jól", fr_if_no[3]),
+        rep("francia nem", fr_if_basic[1]),
+        rep("francia alap", fr_if_basic[2]),
+        rep("francia jól", fr_if_basic[3]),
+        rep("francia nem", fr_if_good[1]),
+        rep("francia alap", fr_if_good[2]),
+        rep("francia jól", fr_if_good[3])) %>% 
+  factor(levels=c("francia nem", "francia alap", "francia jól"))
+data <- data.frame(eng = eng, fr = fr)
+
+format_as_crosstab(data, "eng", "fr")
+```
+
+## Sorszázalék
+
+```{r}
+format_as_crosstab(data, "eng", "fr", cells="row")
+```
+
+## Oszlopszázalék
+
+```{r}
+format_as_crosstab(data, "eng", "fr", cells="col")
+```
+
+## Várható értékek
+
+```{r}
+format_as_crosstab(data, "eng", "fr", cells="expected")
+```
+
+## Próba
+
+```{r, results='asis'}
+test <- table(data$eng, data$fr) %>% 
+  chisq.test()
+cat(chi2_formula(data, "eng", "fr", per_line = 3))
+cat(df_formula(data, "eng", "fr"))
+```
+
+$$
+p = `r round(test$p.value, 3)`
+$$

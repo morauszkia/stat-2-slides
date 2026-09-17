@@ -3,6 +3,7 @@ library(tidyr)
 library(janitor)
 library(ggplot2)
 library(scales)
+library(huxtable)
 
 format_as_crosstab <- function(df, row_var, col_var, cells = "observed") {
   tab <- df %>% 
