@@ -13,6 +13,7 @@ format:
 library(dplyr)
 
 source("./util/format_crosstabs.R")
+source("./util/util-goodness-of-fit.R")
 ```
 
 # Kereszttábla-elemzés
@@ -88,12 +89,324 @@ format_as_crosstab(data, "eng", "fr", cells="expected")
 ## Próba
 
 ```{r, results='asis'}
-test <- table(data$eng, data$fr) %>% 
+ctab <- table(data$eng, data$fr)
+test <- ctab %>% 
   chisq.test()
 cat(chi2_formula(data, "eng", "fr", per_line = 3))
-cat(df_formula(data, "eng", "fr"))
+cramers_v <- sqrt(test$statistic / (sum(ctab) * (min(nrow(ctab), ncol(ctab)) - 1)))
+```
+
+
+## Eredmény
+
+$$
+\begin{align}
+\chi^2 &=`r round(test$statistic, 2)` \\
+df &= (3-1) \ast (3-1) = 4 \\
+p &= `r round(test$p.value, 3)` \\
+V &= \sqrt{\frac{\chi^2}{N\ast min(s-1, o-1)}} = `r round(cramers_v, 3)` 
+\end{align}
+$$
+
+# További asszociációs mérőszámok
+
+## Goodman-Kruskal-féle Lambda
+
+- PRE-elv (*Proportional Reduction of Error*) alapján: előrejelzési hiba másik változó általi csökkentése
+- összefüggés: egyik változó ismerete csökkeni a másik becslésének hibáját
+- Először "vaktában" becsülünk, majd a másik változó értékének ismeretében
+
+. . .
+
+$$
+\lambda=\frac{\text{Hiba}_0 - \text{Hiba}_1}{\text{Hiba}_0}
+$$
+
+## Kiszámítás {.smaller}
+
+```{r}
+format_as_crosstab(data, "eng", "fr")
+```
+  
+<br />
+<br />
+
+$$
+\begin{align}
+\lambda_{\text{francia}|\text{angol}} &= \frac{(40+60)-(10+10+30+20+10+20)}{40+60}=0 \\
+\lambda_{\text{angol}|\text{francia}} &= \frac{(50+70)-(30+30+10+10+10+20)}{50+70}=0,083 
+\end{align}
+$$
+
+## Cohen-féle Kappa
+
+- két változó értékeinek egybeesését (*inter-rater agreement*) méri
+- pl. két értékelés egyebeesése, két teszt, ami ugyanazt vizsgálja, stb.
+- főátlóba eső értékek szignifikánsan jellemzőbbek-e a vártnál?
+
+. . .
+
+$$
+\kappa=\frac{p_o - p_e}{1-p_e}
+$$
+
+## Kiszámítása {.smaller}
+
+```{r}
+k_data <- data.frame(
+  rater1 = c(
+    "Positive", "Positive", "Neutral", "Negative", "Positive",
+    "Neutral", "Negative", "Positive", "Neutral", "Negative",
+    "Positive", "Neutral", "Negative", "Positive", "Neutral",
+    "Negative", "Positive", "Neutral", "Negative", "Positive",
+    "Neutral", "Negative", "Positive", "Neutral", "Negative",
+    "Positive", "Neutral", "Negative", "Positive", "Neutral"
+  ),
+
+  rater2 = c(
+    "Positive", "Positive", "Neutral", "Negative", "Neutral",
+    "Neutral", "Negative", "Positive", "Positive", "Negative",
+    "Positive", "Negative", "Negative", "Positive", "Neutral",
+    "Negative", "Neutral", "Neutral", "Negative", "Positive",
+    "Positive", "Negative", "Positive", "Neutral", "Negative",
+    "Positive", "Negative", "Negative", "Positive", "Neutral"
+  )
+)
+
+format_as_crosstab(k_data, "rater1", "rater2")
+```
+
+<br />
+
+$$
+\begin{align}
+p_o &= \frac{9+6+9}{30}=0,8\\
+p_e &= \frac{9}{30} \ast \frac{11}{30} + 
+       \frac{10}{30} \ast \frac{8}{30} +
+       \frac{11}{30} \ast \frac{11}{30} =
+       0,11+0,09+0,13=0,33\\
+\kappa &= \frac{0,8-0,33}{1-0,33}=0,701
+\end{align}
+$$
+
+## Ordinális mutatók {.smaller}
+
+- Goodman-Kruskal-féle gamma
+- Kendall-féle Tau-b (négyzetes táblák) vagy Tau-c (bármilyen tábla)
+- Rangkorreláció (*később*)
+- Alapfogalmak:
+  - konkordáns pár: két változó szerinti rangsoruk egyezik
+  - diszkordáns pár: rangsoruk nem egyezik
+  - kapcsolt (döntetlen) pár: csak egyik, csak másik, vagy akár mindkettő változón egyezik az érték
+- Alaplogika:
+  - konkordáns vagy diszkordáns párból van-e több
+  - nevezőben különböznek
+- [Gamma kiszámítása az angol/francia példán](https://morauszkia.github.io/stat2sz/kereszttabla2.html#gamma)
+
+# Reziduálisok
+
+## Nyers reziduálisok
+
+```{r}
+format_as_crosstab(data, "eng", "fr", cells="res")
+```
+
+## Kiigazított reziduálisok
+
+```{r}
+format_as_crosstab(data, "eng", "fr", cells="stdres")
+```
+
+# Összegzés
+
+## Kérdések kereszttábláknál
+
+- Van-e összefüggés? &rarr; &chi;&sup2;-próba
+- Ha igen
+  - hogyan függ össze a két változó? &rarr; százalékolt kereszttáblák
+  - milyen erősen függ össze? &rarr; asszociációs mérőszámok ($\phi, V, \lambda, \gamma, \tau_c, \kappa, ...$)
+  - mely cellákban van szignifikáns eltérés? &rarr; korrigált standardizált reziduálisok
+
+# Egyéb khí-négyzet-próbák
+
+## Illeszkedésvizsgálat
+
+- Alaphelyzet: egyetlen változó
+- Kérdés: a változó eloszlása *illeszkedik-e* valamely feltételezett eloszláshoz?
+- Másképpen: a változó eloszlásában megfigyelhető eltérések a várthoz képest tulajdoníthatók-e a mintavételi hibának?
+- Az eloszlás lehet
+  - elméletileg feltételezett (pl. egyenletes eloszlás)
+  - más forrásból (pl. népszámlálás) ismert
+  
+## Illeszkedésvizsgálat
+  
+- Alesetei
+  - tiszta illeszkedésvizsgálat = eloszlás paraméterei adottak
+  - becsléses illeszkedésvizsgálat - paraméterei becsültek
+- Próbák
+  - folytonos változók: Anderson-Darling, Kolmogorov-Smirnov (tiszta illeszkedésv.), Lilliefors és Shapiro-Wilk (normalitásvizsgálat)
+  - diszkrét változók: &chi;&sup2;-próba
+
+## Példa
+
+```{r}
+fit_data <- data.frame(
+  which = c("Főváros", "Megyei jogú", "Egyéb város", "Község"),
+  no = c(203, 179, 331, 287)
+)
+
+table <- as_hux(fit_data) %>%
+  set_markdown_contents(1, 1, "Településtípus") %>%
+  set_markdown_contents(1, 2, "db (m<sub>i</sub>)") %>%
+  set_all_borders() %>% 
+  set_bold(1, everywhere) %>% 
+  set_bold(everywhere, 1)
+
+table
+```
+
+## Hipotézisek
+
+Nullhipotézis: A minta eloszlása illeszkedik a feltételezett eloszláshoz  
+
+Ellenhipotézis: A minta eloszlása nem illeszkedik
+
+## Próba
+
+$$
+\begin{align}
+e_i &= N * p_i\\
+\chi^2 &= \sum^{k}_{i=1}\frac{(m_i-e_i)^2}{e_i} \\
+df &= k-1
+\end{align}
+$$
+
+## Valószínűségek
+
+```{r}
+pi_col <- c(0.18, 0.2, 0.32, 0.3)
+
+fit_data <- fit_data %>% 
+  bind_cols(pi_col)
+
+table <- fit_data %>%
+  as_hux() %>% 
+  set_markdown_contents(1, 1, "Településtípus") %>%
+  set_markdown_contents(1, 2, "db (m<sub>i</sub>)") %>%
+  set_markdown_contents(1, 3, "p<sub>i</sub>") %>% 
+  set_all_borders() %>% 
+  set_bold(1, everywhere) %>% 
+  set_bold(everywhere, 1)
+
+table
+```
+
+## Várható értékek {.smaller}
+
+```{r}
+fit_data <- fit_data %>% 
+  mutate(ei = sum(no) * pi_col)
+
+table <- fit_data %>%
+  as_hux() %>% 
+  set_markdown_contents(1, 1, "Településtípus") %>%
+  set_markdown_contents(1, 2, "db (m<sub>i</sub>)") %>%
+  set_markdown_contents(1, 3, "p<sub>i</sub>") %>% 
+  set_markdown_contents(1, 4, "e<sub>i</sub>") %>% 
+  set_all_borders()
+
+table
+```
+
+```{r, results='asis'}
+cat(chisq_formula(fit_data))
+cat(dffit_formula(fit_data))
+chisq <- calculate_chisq(fit_data)
+pval <- pchisq(chisq, nrow(fit_data)-1, lower.tail = FALSE)
+```
+
+$$
+p = `r round(pval, 3)`
+$$
+
+
+## Homogenitásvizsgálat
+
+- Alaphelyzet: egyetlen változó, de két populációból
+- Kérdés: a változó eloszlása *homogén-e* a két populációban?
+- Próbák
+  - folytonos változók: k-mintás Anderson-Darling, kétmintás Kolmogorov-Smirnov
+  - diszkrét változók: &chi;&sup2;-próba
+- Hipotézisek:
+  - $H_0$: a két populációban homogének az eloszlások
+  - $H_1$: az eloszlások nem homogének a két populációban
+
+## Példa
+
+```{r}
+h_data <- data.frame(
+  which = c("Főváros", "Megyei jogú", "Egyéb város", "Község"),
+  no_11 = c(215, 183, 309, 293),
+  no_21 = c(253, 229, 381, 337)
+)
+
+raw_data <- data.frame(
+  year = c(rep("2011", sum(h_data$no_11)), 
+           rep("2022", sum(h_data$no_21))
+  ),
+  type = c(
+    unlist(mapply(rep, h_data$which, h_data$no_11)),
+    unlist(mapply(rep, h_data$which, h_data$no_21))
+  )
+)
+
+table <- as_hux(h_data) %>%
+  set_markdown_contents(1, 1, "Településtípus") %>%
+  set_markdown_contents(1, 2, "2011") %>%
+  set_markdown_contents(1, 3, "2021") %>% 
+  set_all_borders() %>% 
+  set_bold(1, everywhere) %>% 
+  set_bold(everywhere, 1)
+
+table
+```
+
+## Várható értékek
+
+```{r}
+format_as_crosstab(raw_data, "type", "year", cells="expected")
+```
+
+## Kiszámítás {.smaller}
+
+- Ugyanaz, mint a függetlenségvizsgálatnál
+
+. . .
+
+```{r, results='asis'}
+cat(chi2_formula(raw_data, "type", "year"))
+cat(df_formula(raw_data, "type", "year"))
+
+test <- chisq.test(h_data[,2:3])
 ```
 
 $$
 p = `r round(test$p.value, 3)`
 $$
+
+# Összegzés
+
+## Khí-négyzet-próbák {.smaller}
+
+- esetszámoknak várt esetszámoktól való eltérései
+- alesetek:
+  - függetlenségvizsgálat (kereszttábla): egy populáció, két változó
+  - illeszkedésvizsgálat: egy populáció, egy változó
+  - homogenitásvizsgálat: két populáció, egy változó
+- kiszámítás:
+  - várható értékek kiszámítása
+  - $\chi^2=\sum\frac{(O-E)^2}{E}$
+- folytonos változóknál megfelelő próbák: 
+  - függetlenség: korrelációszámítás (*coming soon*)
+  - illeszkedés: K-S, A-D (normalitás), Lilliefors, Sh-W
+  - homogenitás: A-D, K-S

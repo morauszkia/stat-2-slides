@@ -16,33 +16,63 @@ format_as_crosstab <- function(df, row_var, col_var, cells = "observed") {
       adorn_pct_formatting()
   }
   
-  if (cells == "expected") {
+  if (cells %in% c("expected", "res", "stdres")) {
     test <- tab %>% 
       chisq.test(correct = FALSE)
-    tab <- test$expected %>% 
-      adorn_totals(where = c("row", "col"), name = "összesen")
+    
+    if (cells == "expected") {
+      tab <- test$expected %>% 
+        adorn_totals(where = c("row", "col"), name = "összesen")
+    } else if (cells == "res") {
+      tab <- test$observed[-1] - test$expected[-1]
+    } else if (cells == "stdres") {
+      tab <- test$stdres
+    }
   }
   
-  tab <- tab %>%
-    as_hux()
+  if (cells == "res") {
+    tab <- tab %>% 
+      as_hux(add_rownames = TRUE)
+  } else {
+    tab <- tab %>%
+      as_hux()
+  }
   
   if (cells %in% c("observed", "expected")) {
     number_format(tab) <- "%d"
+  }
+  
+  if (cells == "expected") {
+    number_format(tab[2:(nrow(tab)-1),2:(ncol(tab)-1)]) <- "%.2f"
   }
   
   captions <- c("Tapasztalati kereszttábla", 
                 "Elméleti kereszttábla", 
                 "Sorszázalék", 
                 "Oszlopszázalék",
-                "Cellaszázalék") %>% 
-    setNames(c("observed", "expected", "row", "col", "all"))
+                "Cellaszázalék",
+                "Reziduálisok",
+                "Korrigált standardizált reziduálisok") %>% 
+    setNames(c("observed", "expected", "row", "col", "all", "res", "stdres"))
   
-  tab %>% 
-    set_bold(1, 1) %>%
-    set_bottom_border(c(1, nrow(tab)-1), everywhere) %>%
-    set_right_border(everywhere, c(1, ncol(tab)-1)) %>%
+  tab <- tab %>% 
+    set_bold(1, everywhere) %>%
+    set_bold(everywhere, 1) %>% 
     set_markdown_contents(1, 1, "") %>% 
-    set_caption(captions[cells])
+    set_caption(captions[cells]) %>% 
+    set_align(2:nrow(tab), 2:ncol(tab), "right")
+  
+  if (cells %in% c("res", "stdres")) {
+    tab <- tab %>% 
+      set_bottom_border(c(1, nrow(tab)), everywhere) %>% 
+      set_right_border(everywhere, c(1, ncol(tab)))
+  } else {
+    tab <- tab %>% 
+      set_bottom_border(c(1, nrow(tab)-1), everywhere) %>%
+      set_right_border(everywhere, c(1, ncol(tab)-1)) 
+  }
+  
+  tab
 }
 
 visualize_crosstab <- function(df, x_var, fill_var, x_label, fill_label, y_label="Megoszlás") {
@@ -86,7 +116,7 @@ chi2_formula <- function(data, row_col, col_col, per_line = 3) {
     for (j in seq_len(ncol(observed))) { 
       parts <- c( 
         parts, 
-        sprintf( "\\frac{(%g-%0.2g)^2}{%0.2g}", 
+        sprintf( "\\frac{(%g-%0.2f)^2}{%0.2f}", 
                  observed[i, j], 
                  expected[i, j], 
                  expected[i, j] 
