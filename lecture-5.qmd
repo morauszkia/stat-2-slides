@@ -1,0 +1,489 @@
+---
+title: "Spearman-féle és parciális korreláció"
+subtitle: "Statisztika 2. előadás"
+author: ""
+lang: hu
+format:
+  revealjs:
+    theme: league
+    slide-number: c/t
+    chalkboard: false
+    incremental: true
+    transition: slide
+    preview-links: auto
+    footer: "Spearman-féle és rangkorreláció"
+    code-overflow: wrap
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| include: false
+library(ggplot2)
+
+theme_set(
+  theme_minimal(base_size = 17) +
+    theme(
+      panel.grid.minor = element_blank(), 
+      plot.title = element_text(face = "bold")
+      )
+    )
+
+set.seed(2409)
+```
+
+## A múlt óra tartalmából
+
+Mire szolgál, mit mér a Pearson-féle korreláció?
+
+Mik a korlátai?
+
+Mi az elemzés menete?
+
+Milyen értékek között mozog, és hogyan értelmezzük a Pearson-féle $r$ mutatót?
+
+# Hipotézisvizsgálat
+
+## Sokasági és mintabeli korreláció
+
+| Mennyiség | Jelölés | Jelentés |
+|---|-|------|
+| Sokasági korreláció | $\rho$ (“ró”) | Ismeretlen lineáris asszociáció a sokaságban |
+| Mintabeli korreláció | $r$ | Mintában megfigyelt lineáris asszociáció; $\rho$ becslése |
+
+. . .
+
+$$
+\overline{x} \rightarrow \mu \qquad
+p \rightarrow P(\xi=x_i) \qquad
+s^* \rightarrow \sigma \qquad
+r \rightarrow \rho
+$$
+
+. . .
+
+Az $r$ értéke akkor is változik mintáról-mintára, ha a sokaságban nem változik az összefüggés.
+
+## Leírás és következtetés {.smaller}
+
+Hipotézisvizsgálat alapkérdése: a megfigyeléseink lehetnek-e a véletlen művei
+
+Ebban az esetben: lehetséges-e úgy megfigyelni ekkora korrelációt egy mintában, ha a sokaságban függetlenek egymástól a változók?
+
+Kétoldali próba hipotézisei:
+
+$$
+H_0: \rho=0 \\
+H_1: \rho\ne0
+$$
+
+Egyoldali próba is lehetséges (ha előre így fogalmazzuk meg):
+
+$$
+H_1: \rho>0
+\qquad\text{vagy}\qquad
+H_1: \rho<0
+$$
+
+## Tesztstatisztika
+
+$$
+t = r\sqrt{\frac{n-2}{1-r^2}},
+\qquad df=n-2.
+$$
+Feltétel: normális eloszlású változók
+
+Értelmezéshez:
+
+- lineáris kapcsolat erősségét méri
+- függ $r$-től és $N$-től
+- statisztikai szignifikancia nem ugyanaz, mint az érdemi összefüggés
+
+## Becsült korreláció és mintanagyság
+
+Tegyük fel, hogy $r=0.20$
+
+| Mintanagyság | Kétoldali p-érték | Következtetés |
+|---:|---:|---|
+| $n=25$ | $p\approx .34$ | Gyenge érv $\rho=0$-val szemben |
+| $n=500$ | $p<.001$ | Erős érv $\rho=0$-val szemben |
+
+::: {.callout-warning}
+## Jó gyakorlat
+A kis p-érték mérsékelt korrelációnál is kijöhet, ha a minta nagy. Közöljék és értelmezzék az $r$ értékét, a hozzá tartozó $p$-értékkel együtt.
+:::
+
+## Becsült korreláció és mintanagyság
+
+```{r}
+alpha <- 0.05
+r_values <- seq(0.1, 0.9, by = 0.1)
+n_values <- 3:450
+
+dat <- expand.grid(n = n_values, r = r_values)
+dat$t_stat <- with(dat, r * sqrt((n - 2) / (1 - r^2)))
+dat$p_value <- with(dat, 2 * pt(-abs(t_stat), df = n - 2))
+dat$r_label <- factor(sprintf("r = %.1f", dat$r),
+                      levels = sprintf("r = %.1f", r_values))
+
+# The first integer sample size at which each fixed observed r has p < .05.
+crossings <- do.call(rbind, lapply(split(dat, dat$r_label), function(d) {
+  d[which(d$p_value < alpha)[1], c("n", "r", "p_value", "r_label")]
+}))
+
+p <- ggplot(dat, aes(x = n, y = p_value, colour = r_label)) +
+  geom_line(linewidth = 0.85) +
+  geom_hline(yintercept = alpha, linetype = "dashed",
+             colour = "grey25", linewidth = 0.75) +
+  geom_vline(data = crossings,
+               aes(xintercept = n, colour = r_label),
+               linetype = "dotted", linewidth = 0.75, alpha = 0.85) +
+  scale_colour_viridis_d(option = "turbo", end = 0.9, name = "Becsült korreláció") +
+  scale_x_continuous(breaks = seq(0, 450, by = 50), expand = expansion(mult = c(0, .01))) +
+  scale_y_continuous(breaks = seq(0, 0.20, by = 0.025),
+                     labels = function(x) sprintf("%.3f", x)) +
+  coord_cartesian(xlim = c(3, 450), ylim = c(0, 0.20)) +
+  labs(
+    title = "Korreláció, mintanagyság és p-érték összefüggése",
+    subtitle = "Kétoldali Pearson-féle korrelációs t-próba H0: rho = 0",
+    x = "N",
+    y = "Kétoldali p-érték",
+    caption = "A függőleges vonalak a legkisebb egész n-t mutatják, amelynél p < 0.05"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "right",
+        plot.title = element_text(face = "bold"))
+
+print(p)
+```
+
+## Kiszámítás példa {.scrollable}
+
+Egy $n=80$ hallgatói mintában:
+
+$$
+r_{\text{tanulás, pontszám}}=0.35
+$$
+
+**1: hipotézisek**
+
+$$
+H_0:\rho=0
+\qquad\text{vs}\qquad
+H_1:\rho\ne0.
+$$
+
+**2: tesztstatisztika**
+
+$$
+t=0.35\sqrt{\frac{80-2}{1-0.35^2}}
+\approx3.30,
+\qquad df=78.
+$$
+
+**3: eredmény**
+
+$$
+p\approx0.0015
+$$
+
+**4: következtetés**
+
+Elvetjük $H_0$-t $\alpha=0.05$ szignifikanciaszint mellett. Az adatok pozitív lineáris sokasági korrelációra engednek következtetni.
+
+## Eredmények közlése {.smaller}
+
+Közöljék a kontextust, az irányát, nagyságát, bizonytalanságot.
+
+Például:
+
+> A tanulásra fordított heti idő pozitívan függött össze a vizsgaeredménnyel. ($n=80$, $r=0.35$, $df=78$, $p=0.002$). Azok a hallgatók, akik több készülésről számoltak be, várhatóan több pontot kaptak. Az összefüggés közepesen erős.
+
+Még jobb, ha a becsült korreláció mellé konfidenciaintervallumot is meg tudnak adni:
+
+> $r=0.35$, 95% CI $[0.14,0.52]$, $p=0.002$.
+
+Ez azt is megmutatja, milyen értékek közé esik nagy megbízhatósággal a sokasági korreláció.
+
+# Összefoglalás
+
+## Korrelációelemzés menete {.smaller}
+
+1. **Kutatási kérdés** két numerikus változó összefüggéséről
+2. **Adatok vizsgálata**: mérési szint, pontdiagram, linearitás, csoportok, kiugró értékek, hiányzó értékek
+3. **Próba kiválasztása**: megfelel-e a Pearson-féle korreláció?
+4. **Kapcsolat leírása**: kontextus, irány, erősség, alak.
+5. **$r$ kiszámítása és közlése**: optimális esetben konfidenciaintervallummal.
+6. **Hipotézisvizsgálat: $H_0:\rho=0$**, ha valamilyen sokaságra akarunk következtetést levonni, és a feltételek teljesülnek.
+7. **Korreláció és okság megkülönböztetése**: alternatívák számbavétele.
+
+## Legfontosabb információk {.smaller}
+
+- Pearson-féle $r$ a *lineáris* asszociáció erősségét méri két magas mérési szintű változó között.
+- Az $r$ értéke $-1$ és $+1$ közé esik. Az előjel az irányát, $|r|$ pedig a nagyságát mutatja.
+- Az $r$ értéke *szimmetrikus*, és *független a mértékegységektől*.
+- A hipotézisvizsgálat általában a $H_0:\rho=0$ hipotézist vizsgálja.
+- A statisztikai szignifikancia a becsült korreláció és a mintanagyság függvénye.
+- A korreláció (is) együttjárást mér, nem pedig oksági kapcsolatot.
+
+# Spearman-féle korreláció és parciális korreláció
+
+## Két új kérdés
+
+Az előző alkalomról: a Pearson-féle $r$ **KÉT** metrikus (számszerű) változó **LINEÁRIS** együttjárását írja le. 
+
+Ehhez képest:
+
+- **Spearman:** Mi történik, ha a kapcsolat monoton (következetes irányú), de nem egyenes vonalú, vagy a változó ordinális?
+- **Parciális korreláció:** Mi marad az $X$ és $Y$ közötti lineáris kapcsolatból, ha figyelembe veszünk egy harmadik változót, $Z$-t?
+
+## Mai célok
+
+- Monoton, de nem lineáris kapcsolat felismerése;
+- Döntés, mikor hasznos a Pearson-féle, és mikor a Spearman-féle korreláció;
+- Rangok képezése, holtverseny kezelése, és Spearman-féle $r_s$ értelmezése;
+- Kontrollváltozó fogalma, többváltozós összefüggések alapjai;
+- A kétváltozós és a parciális korreláció különbsége;
+- $r_{XY\cdot Z}$ értékének kiszámítása három páronkénti korrelációból.
+
+# Spearman-féle rangkorreláció
+
+## Visszatekintés: mit lát Pearson?
+
+```{r}
+#| fig-width: 11
+#| fig-height: 4.4
+x <- seq(0, 10, length.out = 90)
+d <- rbind(
+  data.frame(x=x, y=1.5*x+rnorm(90,0,1.6), minta="Megközelítőleg lineáris"),
+  data.frame(x=x, y=12*(1-exp(-x/2))+rnorm(90,0,.6), minta="Monoton, de görbülő")
+)
+ggplot(d,aes(x,y)) + geom_point(color="#2166ac",alpha=.7) +
+  geom_smooth(method="lm",formula=y~x,se=FALSE,color="#b2182b") +
+  facet_wrap(~minta,scales="free_y") + labs(x="X",y="Y",caption="Random generált adatok; piros: illesztett egyenes")
+```
+
+Melyik ábrán látható kapcsolat jellemezhető jobban egy egyenessel?
+
+## Monoton kapcsolat {.smaller}
+
+- **Pozitívan monoton:** nagyobb $X$-hez általában nagyobb (vagy azonos) $Y$ tartozik.
+- **Negatívan monoton:** nagyobb $X$-hez általában kisebb (vagy azonos) $Y$ tartozik.
+- A monoton kapcsolat lehet görbülő és lehetnek benne "platók".
+- Az U alakú kapcsolat **nem monoton**: egyetlen Spearman-együttható sem írja le jól az egész mintázatot.
+
+. . .
+
+**Példa:** elképzelhető olyan sokaság, amelyben a jövedelem és elégedettség közötti kapcsolat eleinte erősebb, majd ellaposodhat.
+
+## A Spearman-együttható alapötlete {.smaller}
+
+1. az $X$ és $Y$ megfigyeléseinek rangsorolása
+2. két rangsor Pearson-korrelációjának kiszámítása
+
+. . .
+
+$$
+r_s = r(R(X){,}R(Y)) \\
+\text{vagy, ha nincs holtverseny} \\
+r_s = 1-\frac{6\sum_{i=1}^{n} {d_i^2}}{n(n^2-1)}
+$$
+
+- A mintaegyütthatót itt $r_s$-sel jelöljük; a szakirodalomban $\rho_s$ is gyakori.
+- Tartománya $[-1,1]$; az előjel az irányt, az abszolút érték a **monoton** együttjárás mértékét fejezi ki.
+- A rangok miatt a távolságok pontos nagysága nem úgy számít, mint a Pearson-féle $r$ esetében.
+
+## Rangok kézzel: egyszerű példa
+
+| Hallgató | Idő $X$ | $X$ rangja | Pontszám $Y$ | $Y$ rangja | $d_i$ | $d_i^2$ |
+|:--|--:|--:|--:|--:|--:|--:|
+| A | 2 |  | 50 |  |  |  |
+| B | 4 |  | 65 |  |  |  |
+| C | 6 |  | 60 |  |  |  |
+| D | 8 |  | 80 |  |  |  |
+| E | 10 |  | 90 |  |  |  |
+
+Rangsorolják a hallgatókat külön-külön a tanulásra fordított idő és a pontszám alapján!
+
+## Rangok kézzel: egyszerű példa
+
+| Hallgató | Idő $X$ | $X$ rangja | Pontszám $Y$ | $Y$ rangja | $d_i$ | $d_i^2$ |
+|:--|--:|--:|--:|--:|--:|--:|
+| A | 2 | 1 | 50 | 1 |  |  |
+| B | 4 | 2 | 65 | 3 |  |  |
+| C | 6 | 3 | 60 | 2 |  |  |
+| D | 8 | 4 | 80 | 4 |  |  |
+| E | 10 | 5 | 90 | 5 |  |  |
+
+Számítsák ki a két rangérték különbségét és ennek négyzetét, majd végül ez utóbbi összegét!
+
+## Rangok kézzel: egyszerű példa
+
+| Hallgató | Idő $X$ | $X$ rangja | Pontszám $Y$ | $Y$ rangja | $d_i$ | $d_i^2$ |
+|:--|--:|--:|--:|--:|--:|--:|
+| A | 2 | 1 | 50 | 1 | 0 | 0 |
+| B | 4 | 2 | 65 | 3 | -1 | 1 |
+| C | 6 | 3 | 60 | 2 | 1 | 1 |
+| D | 8 | 4 | 80 | 4 | 0 | 0 |
+| E | 10 | 5 | 90 | 5 | 0 | 0 |
+
+Itt $\sum d_i^2=2$, és nincs azonos rang (holtverseny)
+
+## Rangkorreláció kiszámítása
+
+$$r_s=1-\frac{6\sum d_i^2}{n(n^2-1)}=1-\frac{12}{5(25-1)}=0{,}90.$$
+
+Ez a **rangkülönbség-képlet csak holtverseny nélküli** esetben használható ilyen alakban.
+
+## Holtversenyek: mit csinálunk? {.smaller}
+
+Ha két válaszadó ugyanazt az értéket kapja, az érintett rangok **átlagát** adjuk nekik.
+
+| Válaszadó | Politikai érdeklődés (1–5) | Rang |
+|:--|--:|--:|
+| A | 1 | 1 |
+| B | 2 | 2,5 |
+| C | 2 | 2,5 |
+| D | 4 | 4 |
+| E | 5 | 5 |
+
+A két 2-es érték rangja $(2+3)/2=2{,}5$.
+
+**Holtverseny esetén:** Pearson-féle korrelációt számolunk a rangokon
+
+## Példa: rangok és görbült kapcsolat
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.6
+income <- seq(1,100,length.out=90)
+satisfaction <- 2+5*(1-exp(-income/18))+rnorm(90,0,.35)
+illustration <- data.frame(income,satisfaction)
+rp <- cor(income,satisfaction)
+rs <- cor(income,satisfaction,method="spearman")
+ggplot(illustration,aes(income,satisfaction))+
+  geom_point(color="#2166ac",alpha=.7,size=2)+
+  geom_smooth(method="lm",formula=y~x,se=FALSE,color="#b2182b",linewidth=1)+
+  geom_smooth(method="loess",se=FALSE,color="#1b9e77",linewidth=1,linetype="dashed")+
+  labs(x="Illusztratív jövedelmi mutató",y="Illusztratív elégedettségi pontszám",
+       subtitle=sprintf("Pearson r = %.2f; Spearman r_s = %.2f",rp,rs),
+       caption="Fiktív adatok; piros: egyenes, zöld szaggatott: görbe")
+```
+
+A két együttható másfajta összefüggést számszerűsít.
+
+## Mikor melyiket? {.smaller}
+
+| Kutatási helyzet | Célszerű kiindulás |
+|:--|:--|
+| Két mennyiségi változó, nagyjából egyenes mintázat | Pearson $r$ |
+| Sorrendi skálájú változók és monoton mintázat | Spearman $r_s$ |
+| Két mennyiségi változó, monoton, de látványosan görbült kapcsolat | Spearman $r_s$; a görbét külön is mutassák |
+| U alakú kapcsolat | Egyetlen $r$ vagy $r_s$ nem megfelelő összefoglaló |
+| Néhány kirívó megfigyelés | Vizsgálják meg az adatokat; Spearman csökkentheti, de nem szünteti meg automatikusan a problémát |
+
+Az **egyetlen ötfokozatú Likert-skála** ordinális, egy többitemes indexet olykor közelítőleg folytonosként kezelünk, de ezt indokolni kell.
+
+## Spearman: próba és közlés {.smaller}
+
+A nullhipotézis: $H_0:\rho_s=0$; kétoldali alternatíva: $H_1:\rho_s\ne0$.
+
+- Vizsgálják meg a pontdiagramot és a holtversenyeket.
+- Az együttható és a $p$-érték **külön** információ.
+- Az alkalmazott $p$-érték-számítás függhet a mintanagyságtól: 
+  + kis mintáknál külön táblázatok ([pl. ez](https://statisticsfundamentals.com/tables/spearman-correlation-table/))
+  + nagy mintáknál a Pearson-nál is számított t-próba
+
+. . .
+
+$$
+t = r_s \sqrt\frac{n-2}{1-r_s^2}; \qquad df=n-2
+$$
+
+. . .
+
+**Közlés mintája:** „A két ordinális változó között negatív monoton kapcsolatot mértünk, $r_s=\dots$, $n=\dots$, $p=\dots$.”
+
+# A harmadik változó szerepe
+
+## A kétváltozós kapcsolat nem a teljes történet {.smaller}
+
+$X$: iskolai végzettség évei  
+$Y$: szubjektív egészségi állapot  
+$Z$: jövedelmi szint
+
+. . .
+
+Kérdés: változik-e az $X$–$Y$ kapcsolat, ha figyelembe vesszük a jövedelmet?
+
+- $r_{XY}$: nem veszünk figyelembe harmadik változót.
+- $r_{XY\cdot Z}$ **parciális korreláció**: $X$ és $Y$ lineáris kapcsolatát írja le, miután **mindkettőből** eltávolítottuk a $Z$-vel való lineáris kapcsolatot.
+
+. . .
+
+Ez statisztikai kiigazítás, nem automatikusan oksági „tisztítás”.
+
+A kontroll után gyengülhet, erősödhet vagy előjelet is válthat a kapcsolat.
+
+## Képlet három korrelációból {.smaller}
+
+Ha egyetlen $Z$ kontrollváltozó van:
+
+$$r_{XY\cdot Z}=\frac{r_{XY}-r_{XZ}r_{YZ}}
+{\sqrt{(1-r_{XZ}^{2})(1-r_{YZ}^{2})}}.$$
+
+- A számláló az $X$–$Y$ együttjárásnak a $Z$-hez kötődő lineáris együttjáráson túli részét tükrözi.
+- A nevező a két változó $Z$-től függetlenül megmaradt változékonyságához igazít.
+- Ugyanazon eseteken, azonos hiányzóadat-kezeléssel számított páronkénti korrelációkat kell használni!
+- Ha valamelyik változót $Z$ tökéletesen előrejelzi, a nevező nulla: a parciális korreláció nem értelmezhető.
+
+## Számoljuk ki együtt
+
+Adott: $r_{XY}=0{,}60$, $r_{XZ}=0{,}50$, $r_{YZ}=0{,}40$.
+
+. . .
+
+$$r_{XY\cdot Z}
+=\frac{0{,}60-0{,}50\ast0{,}40}
+{\sqrt{(1-0{,}50^2)(1-0{,}40^2)}}$$
+
+$$=\frac{0{,}40}{\sqrt{0{,}75\cdot0{,}84}}
+=\frac{0{,}40}{\sqrt{0{,}63}}
+\approx 0{,}504$$
+
+**Értelmezés:** a lineáris kapcsolat az $X$ és $Y$ között a $Z$-re való kiigazítás után is pozitív, de ez továbbra sem bizonyít oksági hatást!
+
+## Önálló számolási feladat
+
+Egy vizsgálatban:
+
+$$r_{XY}=0{,}30,\qquad r_{XZ}=0{,}60,\qquad r_{YZ}=0{,}70.$$
+
+Számítsák ki és értelmezzék $r_{XY\cdot Z}$-t, $r_{XZ\cdot Y}$-t és $r_{YZ\cdot X}$-et!
+
+
+## Parciális korreláció: próba
+
+Egy $Z$ kontrollváltozó mellett a szokásos próba nullhipotézise: $H_0:\rho_{XY\cdot Z}=0$.
+
+$$t=r_{XY\cdot Z}\sqrt{\frac{n-3}{1-r_{XY\cdot Z}^{2}}},\qquad df=n-3.$$
+
+Általánosan $k$ kontrollváltozónál $df=n-k-2$.
+
+## A harmadik változó szerepei
+
+A harmadik változó lehet
+
+- közös oka $X$-nek és $Y$-nak, emiatt potenciálisan zavaró tényező vagy $X$ és $Y$ között látszatösszefüggést hoz létre
+- közvetítő (mediátor) $X$ és $Y$ között, amely részben vagy teljesen közvetítheti a hatást
+- kollider változó, amelyre $X$-nek és $Y$-nak is hatása van, ezért a kontrollálása hoz létre látszatösszefüggést!
+
+## Következő alkalom: Lineáris regresszió
+
+- A parciális korreláció maradékok közötti kapcsolatként is kiszámítható.
+- Az OLS-regresszió ugyanezt a „mi marad a többi változó figyelembevétele után?” kérdést kiterjeszti.
+- Közös szabály: a statisztikai kontroll és az oksági következtetés nem ugyanaz.
+- Regresszió: nem pusztán vizsgálja a kapcsolat meglétét, hanem modellezi, előrejelzésre alkalmas.
