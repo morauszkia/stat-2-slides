@@ -208,7 +208,7 @@ Még jobb, ha a becsült korreláció mellé konfidenciaintervallumot is meg tud
 
 Ez azt is megmutatja, milyen értékek közé esik nagy megbízhatósággal a sokasági korreláció.
 
-# Összefoglalás
+# Pearson-féle korreláció - Összefoglalás
 
 ## Korrelációelemzés menete {.smaller}
 
@@ -407,6 +407,153 @@ $$
 
 **Közlés mintája:** „A két ordinális változó között negatív monoton kapcsolatot mértünk, $r_s=\dots$, $n=\dots$, $p=\dots$.”
 
+# Vizualizáció
+
+## Scatter plot korlátai I: skálák
+
+```{r}
+#| include: false
+library(ggplot2)
+library(hexbin)
+set.seed(20261005)
+theme_set(
+  theme_minimal(base_size = 17) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(face = "bold"),
+      legend.position = "right"
+    )
+)
+
+# Nagy, folytonos változókból álló szimulált minta
+n <- 6000
+income <- rlnorm(n, meanlog = 10.55, sdlog = 0.55) / 1000
+life_satisfaction <- pmin(10, pmax(0,
+  3.0 + 1.15 * log(income + 1) + rnorm(n, 0, 1.55)
+))
+continuous <- data.frame(income, life_satisfaction)
+
+# Két, erősen diszkrét sorrendi változó
+n_ord <- 700
+latent_interest <- rnorm(n_ord)
+latent_news <- 0.65 * latent_interest + rnorm(n_ord, 0, 0.85)
+political_interest <- cut(latent_interest,
+                           breaks = c(-Inf, -0.85, -0.25, 0.35, 0.95, Inf),
+                           labels = 1:5)
+news_following <- cut(latent_news,
+                      breaks = c(-Inf, -0.85, -0.25, 0.35, 0.95, Inf),
+                      labels = 1:5)
+ordinal <- data.frame(
+  political_interest = as.integer(as.character(political_interest)),
+  news_following = as.integer(as.character(news_following))
+)
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", size = 1.3) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
+              color = "#b2182b", linewidth = 1) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Hagyományos pontdiagram: sok pont elfedi egymást",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+## Scatter plot korlátai II: ordinális változók
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_point(color = "#2166ac", size = 2.2, alpha = .7) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  labs(title = "Sorrendi skálák: az azonos pontok elfedik egymást",
+       x = "Politikai érdeklődés (1–5)",
+       y = "Hírkövetés gyakorisága (1–5)")
+```
+
+## Megoldási lehetőségek: átlátszóság
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", alpha = .10, size = 1.25) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
+              color = "#b2182b", linewidth = 1) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(x = "Háztartási jövedelem (ezer fabatka)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+## Megoldási lehetőségek: hőtérkép I
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_bin_2d(bins = 35) +
+  scale_fill_viridis_c(option = "C", name = "Esetek\nszáma") +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(x = "Háztartási jövedelem (ezer fabatka)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+## Megoldási lehetőségek: hőtérkép II
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_hex(bins = 35) +
+  scale_fill_viridis_c(option = "C", name = "Esetek\nszáma") +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(x = "Háztartási jövedelem (ezer fabatka)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+## Megoldási lehetőségek: sűrűségkontúrok
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", alpha = .06, size = 1) +
+  geom_density_2d(color = "#b2182b", linewidth = .8) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(x = "Háztartási jövedelem (ezer fabatka)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+## Megoldási lehetőségek: jitterelt pontok
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+set.seed(20261005)
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_jitter(width = .15, height = .15, color = "#2166ac", alpha = .35, size = 1.9) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  labs(x = "Politikai érdeklődés",
+       y = "Hírkövetés gyakorisága")
+```
+
+## Megoldási lehetőségek: bubble plot
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_count(color = "#2166ac", alpha = .75) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  scale_size_area(max_size = 18, name = "Esetek\nszáma") +
+  labs(x = "Politikai érdeklődés",
+       y = "Hírkövetés gyakorisága")
+```
+
 # A harmadik változó szerepe
 
 ## A kétváltozós kapcsolat nem a teljes történet {.smaller}
@@ -480,6 +627,15 @@ A harmadik változó lehet
 - közös oka $X$-nek és $Y$-nak, emiatt potenciálisan zavaró tényező vagy $X$ és $Y$ között látszatösszefüggést hoz létre
 - közvetítő (mediátor) $X$ és $Y$ között, amely részben vagy teljesen közvetítheti a hatást
 - kollider változó, amelyre $X$-nek és $Y$-nak is hatása van, ezért a kontrollálása hoz létre látszatösszefüggést!
+
+# Összegzés és kitekintés
+
+## Korreláció
+
+- metrikus vagy legalább ordinális mérési szintű változók közötti asszociáció
+- Pearson-féle: intervallum- vagy arányskálák *lineáris* összefüggését vizsgálja
+- Spearman-féle: ordinális változók, illetve skálák *monoton* összefüggését vizsgálja
+- parciális korreláció: két változó további változó(k) hatásának kiszűrése után megmaradt összefüggését vizsgálja
 
 ## Következő alkalom: Lineáris regresszió
 

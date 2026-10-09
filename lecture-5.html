@@ -6,8 +6,8 @@
 <script src="lecture-5_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="lecture-5_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="lecture-5_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="lecture-5_files/libs/quarto-html/quarto-syntax-highlighting-dark-0a6b7249c26820e032cb0bd839ff02b1.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.9.38">
+<link href="lecture-5_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="">
   <title>Spearman-féle és parciális korreláció</title>
@@ -17,9 +17,6 @@
   <link rel="stylesheet" href="lecture-5_files/libs/revealjs/dist/reset.css">
   <link rel="stylesheet" href="lecture-5_files/libs/revealjs/dist/reveal.css">
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -32,7 +29,7 @@
       vertical-align: middle;
     }
   </style>
-  <link rel="stylesheet" href="lecture-5_files/libs/revealjs/dist/theme/quarto-49263aa2590dfcde0034ef1cfb6d8584.css">
+  <link rel="stylesheet" href="lecture-5_files/libs/revealjs/dist/theme/quarto-a5139cbddc8367a1be166dea7034a67f.css">
   <link href="lecture-5_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="lecture-5_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="lecture-5_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -299,8 +296,8 @@ p\approx0.0015
 <p>Ez azt is megmutatja, milyen értékek közé esik nagy megbízhatósággal a sokasági korreláció.</p>
 </section></section>
 <section>
-<section id="összefoglalás" class="title-slide slide level1 center">
-<h1>Összefoglalás</h1>
+<section id="pearson-féle-korreláció---összefoglalás" class="title-slide slide level1 center">
+<h1>Pearson-féle korreláció - Összefoglalás</h1>
 
 </section>
 <section id="korrelációelemzés-menete" class="slide level2 smaller">
@@ -723,6 +720,43 @@ t = r_s \sqrt\frac{n-2}{1-r_s^2}; \qquad df=n-2
 </div>
 </section></section>
 <section>
+<section id="vizualizáció" class="title-slide slide level1 center">
+<h1>Vizualizáció</h1>
+
+</section>
+<section id="scatter-plot-korlátai-i-skálák" class="slide level2">
+<h2>Scatter plot korlátai I: skálák</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<section id="scatter-plot-korlátai-ii-ordinális-változók" class="slide level2">
+<h2>Scatter plot korlátai II: ordinális változók</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-7-1.png" width="864" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-átlátszóság" class="slide level2">
+<h2>Megoldási lehetőségek: átlátszóság</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-hőtérkép-i" class="slide level2">
+<h2>Megoldási lehetőségek: hőtérkép I</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-hőtérkép-ii" class="slide level2">
+<h2>Megoldási lehetőségek: hőtérkép II</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-10-1.png" width="960" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-sűrűségkontúrok" class="slide level2">
+<h2>Megoldási lehetőségek: sűrűségkontúrok</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-jitterelt-pontok" class="slide level2">
+<h2>Megoldási lehetőségek: jitterelt pontok</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-12-1.png" width="864" class="r-stretch"></section>
+<section id="megoldási-lehetőségek-bubble-plot" class="slide level2">
+<h2>Megoldási lehetőségek: bubble plot</h2>
+
+<img data-src="lecture-5_files/figure-revealjs/unnamed-chunk-13-1.png" width="864" class="r-stretch"></section></section>
+<section>
 <section id="a-harmadik-változó-szerepe" class="title-slide slide level1 center">
 <h1>A harmadik változó szerepe</h1>
 
@@ -788,6 +822,20 @@ t = r_s \sqrt\frac{n-2}{1-r_s^2}; \qquad df=n-2
 <li class="fragment">közös oka <span class="math inline">\(X\)</span>-nek és <span class="math inline">\(Y\)</span>-nak, emiatt potenciálisan zavaró tényező vagy <span class="math inline">\(X\)</span> és <span class="math inline">\(Y\)</span> között látszatösszefüggést hoz létre</li>
 <li class="fragment">közvetítő (mediátor) <span class="math inline">\(X\)</span> és <span class="math inline">\(Y\)</span> között, amely részben vagy teljesen közvetítheti a hatást</li>
 <li class="fragment">kollider változó, amelyre <span class="math inline">\(X\)</span>-nek és <span class="math inline">\(Y\)</span>-nak is hatása van, ezért a kontrollálása hoz létre látszatösszefüggést!</li>
+</ul>
+</section></section>
+<section>
+<section id="összegzés-és-kitekintés" class="title-slide slide level1 center">
+<h1>Összegzés és kitekintés</h1>
+
+</section>
+<section id="korreláció" class="slide level2">
+<h2>Korreláció</h2>
+<ul>
+<li class="fragment">metrikus vagy legalább ordinális mérési szintű változók közötti asszociáció</li>
+<li class="fragment">Pearson-féle: intervallum- vagy arányskálák <em>lineáris</em> összefüggését vizsgálja</li>
+<li class="fragment">Spearman-féle: ordinális változók, illetve skálák <em>monoton</em> összefüggését vizsgálja</li>
+<li class="fragment">parciális korreláció: két változó további változó(k) hatásának kiszűrése után megmaradt összefüggését vizsgálja</li>
 </ul>
 </section>
 <section id="következő-alkalom-lineáris-regresszió" class="slide level2">
