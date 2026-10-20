@@ -1,0 +1,269 @@
+---
+title: "Toleranciaintervallumok a regresszióban"
+subtitle: "Kiegészítő diasor · BA szociológia"
+lang: hu
+format:
+  revealjs:
+    theme: simple
+    slide-number: c/t
+    slide-level: 2
+    width: 1600
+    height: 900
+    center: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| include: false
+library(ggplot2)
+set.seed(171026)
+theme_set(theme_minimal(base_size=18)+theme(panel.grid.minor=element_blank()))
+d <- data.frame(x=runif(90,2,20))
+d$y <- 40+1.7*d$x+rnorm(nrow(d),0,8)
+m <- lm(y~x,data=d)
+grid <- data.frame(x=seq(2,20,length.out=150))
+ci <- predict(m,grid,interval="confidence",level=.95)
+pi <- predict(m,grid,interval="prediction",level=.95)
+nu <- df.residual(m)
+sigma_hat <- sigma(m)
+h <- 1/nrow(d)+(grid$x-mean(d$x))^2/sum((d$x-mean(d$x))^2)
+alpha <- .05
+P <- .95
+# Konzervatív pontonkénti TI: Bonferroni a feltételes átlag és szórás korlátaira.
+mean_margin <- qt(1-alpha/4,nu)*sigma_hat*sqrt(h)
+sigma_upper <- sigma_hat*sqrt(nu/qchisq(alpha/2,nu))
+ti_margin <- mean_margin+qnorm((1+P)/2)*sigma_upper
+grid$fit <- ci[,"fit"]
+grid$ci_lo <- ci[,"lwr"];grid$ci_hi <- ci[,"upr"]
+grid$pi_lo <- pi[,"lwr"];grid$pi_hi <- pi[,"upr"]
+grid$ti_lo <- grid$fit-ti_margin;grid$ti_hi <- grid$fit+ti_margin
+```
+
+# Három különböző intervallum
+
+## Milyen tartományt keresünk?
+
+Példa: tanulási idő és tesztpontszám kapcsolata.
+
+| Kérdés | Eszköz |
+|:--|:--|
+| Mekkora a populációs átlagpontszám heti 10 tanulási óránál? | A feltételes átlag konfidenciaintervalluma |
+| Milyen pontszámot kap egy új hallgató heti 10 tanulási óránál? | Predikciós intervallum |
+| Mely tartomány tartalmazza a heti 10 órát tanulók legalább 95%-ának pontszámát, 95%-os megbízhatósággal? | Toleranciaintervallum |
+
+A toleranciaintervallum **nem** a multikollinearitásnál használt toleranciamutató ($1/VIF$).
+
+## Két százalékot kell megadni
+
+A toleranciaintervallumhoz két külön értéket választunk:
+
+- **Lefedni kívánt populációhányad:** $P$, például 0,95.
+- **Megbízhatósági szint:** $1-\alpha$, például 0,95.
+
+A „95% / 95% toleranciaintervallum” ebben a diasorban azt jelenti:
+
+> Olyan eljárást használunk, amely a megadott feltételek mellett az ismételt minták legalább 95%-ában olyan intervallumot ad, amely a releváns populáció legalább 95%-át lefedi.
+
+Nem azt jelenti, hogy az intervallumba biztosan a megfigyelt minta 95%-a kerül.
+
+## Mit jelent ez regresszióban?
+
+Adott, előre kijelölt $x_0$ mellett az $Y\mid X=x_0$ feltételes eloszlást vizsgáljuk.
+
+Legyen $L(x_0)$ és $U(x_0)$ a mintából számított két határ. A cél:
+
+$$\Pr_{\text{mintavétel}}\!\left[
+\Pr\{L(x_0)\le Y\le U(x_0)\mid X=x_0\}\ge P
+\right]\ge 1-\alpha.$$
+
+A belső valószínűség a populációs lefedettség; a külső a mintavételi megbízhatóság.
+
+**BA-szintű cél:** értelmezze a két szintet; a képletet nem szükséges memorizálnia.
+
+## Miért nem elég a predikciós intervallum?
+
+- A predikciós intervallum egy új véletlen megfigyelés lefedését célozza.
+- Egy 95%-os predikciós intervallum nem garantálja 95%-os megbízhatósággal, hogy az egyszer rögzített tartomány a populáció legalább 95%-át tartalmazza.
+- A toleranciaintervallum éppen ezt a **populációs hányadra vonatkozó garanciát** célozza.
+
+A két eljárás nem felcserélhető. A százalékok és az alkalmazott módszer megadása nélkül az intervallumok szélessége sem hasonlítható össze általánosan.
+
+# Szemléltetés és alkalmazás
+
+## Háromféle sáv ugyanazon modellen
+
+```{r}
+#| fig-width: 11
+#| fig-height: 5.5
+ggplot(grid,aes(x,fit))+
+  geom_ribbon(aes(ymin=ti_lo,ymax=ti_hi,fill="95% / 95% tolerancia"),alpha=.30)+
+  geom_ribbon(aes(ymin=pi_lo,ymax=pi_hi,fill="95% predikció"),alpha=.40)+
+  geom_ribbon(aes(ymin=ci_lo,ymax=ci_hi,fill="95% konfidencia: átlag"),alpha=.8)+
+  geom_point(data=d,aes(x,y),inherit.aes=FALSE,alpha=.35,size=1.7)+
+  geom_line(color="#222222",linewidth=.8)+
+  scale_fill_manual(values=c("95% / 95% tolerancia"="#d95f02",
+                            "95% predikció"="grey60",
+                            "95% konfidencia: átlag"="#2166ac"),name=NULL)+
+  labs(x="Heti tanulási idő (óra)",y="Tesztpontszám",
+       caption="Fiktív adatok. Pontonkénti sávok; a toleranciasáv konzervatív konstrukció.")+
+  theme(legend.position="bottom")
+```
+
+Az ábrán a toleranciasáv szélesebb. Ez az itt választott szintekre és konstrukcióra vonatkozik.
+
+## Mi történik egy kijelölt tanulási időnél?
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.8
+x0 <- 10
+ci0 <- predict(m,data.frame(x=x0),interval="confidence")
+pi0 <- predict(m,data.frame(x=x0),interval="prediction")
+h0 <- 1/nrow(d)+(x0-mean(d$x))^2/sum((d$x-mean(d$x))^2)
+margin0 <- qt(1-alpha/4,nu)*sigma_hat*sqrt(h0)+qnorm((1+P)/2)*sigma_upper
+ranges <- data.frame(
+ tipus=factor(c("Átlag: konfidencia","Új eset: predikció","Populációhányad: tolerancia"),
+              levels=c("Populációhányad: tolerancia","Új eset: predikció","Átlag: konfidencia")),
+ lo=c(ci0[1,"lwr"],pi0[1,"lwr"],ci0[1,"fit"]-margin0),
+ hi=c(ci0[1,"upr"],pi0[1,"upr"],ci0[1,"fit"]+margin0))
+ggplot(ranges,aes(y=tipus,color=tipus))+
+ geom_segment(aes(x=lo,xend=hi,yend=tipus),linewidth=3)+
+ geom_vline(xintercept=ci0[1,"fit"],linetype="dashed")+
+ scale_color_manual(values=c("Átlag: konfidencia"="#2166ac","Új eset: predikció"="grey50",
+                             "Populációhányad: tolerancia"="#d95f02"),guide="none")+
+ labs(x="Pontszámtartomány heti 10 tanulási óránál",y=NULL)
+```
+
+Ugyanaz a becsült átlag, de három eltérő kérdés és három eltérő intervallum.
+
+## Mikor hasznos társadalomtudományban?
+
+- Egy tesztpontszám tipikus egyéni tartományának leírásakor egy adott prediktorprofil mellett.
+- Várakozási vagy utazási idők nagy hányadát lefedő tartomány tervezésekor, megfelelő eloszlásmodell mellett.
+- Intézményi kapacitástervezésnél, amikor nemcsak az átlag, hanem az esetek túlnyomó részének tartománya érdekes.
+
+**Egyoldali változat:** például felső határ, amely alatt a várakozási idők legalább 90%-a található, 95%-os megbízhatósággal.
+
+A statisztikai toleranciahatár nem előírt szakpolitikai küszöb és nem automatikusan „elfogadható” értékhatár.
+
+## Feltevések és korlátok
+
+A bemutatott normális lineáris modellben feltesszük:
+
+- a feltételes átlag helyes lineáris alakját;
+- a megfigyelések függetlenségét;
+- az állandó feltételes hibaszórást;
+- a normális feltételes hibaeloszlást.
+
+A populációs szélek becslése érzékeny lehet a ferdeségre, nehéz eloszlásszélekre és kiugró esetekre.
+
+**Nem a nyers $X$ vagy $Y$ normalitása a feltétel.** Más modellhez más toleranciaintervallum-eljárás szükséges; a robusztus standard hiba önmagában nem elegendő.
+
+## Pontonkénti intervallum vagy szimultán sáv?
+
+A diasorban minden egyes előre rögzített prediktorértéknél külön értjük a megbízhatóságot.
+
+- A pontonkénti 95% nem jelenti, hogy a teljes görbe minden pontjára egyszerre 95%-os a garancia.
+- Ha az egész prediktortartományra egyszerre kívánunk állítást tenni, megfelelő **szimultán toleranciasávra** van szükség.
+- Több prediktor esetén a lefedettség egy adott prediktorkombinációra vonatkozik, nem az egész populáció összesített eloszlására.
+
+A szimultán eljárások részletes tárgyalása meghaladja a BA-szintű minimumot.
+
+## Mitől változik a szélesség?
+
+- Nagyobb $P$: több egyéni kimenetet kell lefedni, ezért az intervallum szélesedik.
+- Magasabb megbízhatóság: erősebb garancia, tipikusan szélesebb intervallum.
+- Nagyobb hibaszórás: szélesebb intervallum.
+- Bizonytalanabb feltételes átlag: szélesebb intervallum.
+- Nagyobb minta: csökken a paraméterbecslés bizonytalansága, de **az egyéni szóródás nem tűnik el**.
+
+Normális modellben, rögzített $x_0$ mellett növekvő információnál a kétoldali központi $P$-hányad szélessége $2z_{(1+P)/2}\sigma$ felé tart, nem nulla felé.
+
+## Értelmezési gyakorlat
+
+Egy fiktív elemzés a heti 10 órát tanulókra 95% / 95% toleranciaintervallumot közöl: [40; 75] pont.
+
+Melyik állítás helyes?
+
+A. A csoport átlagpontszáma 95%-os megbízhatósággal 40 és 75 közé esik; ez az intervallum elsődleges jelentése.
+
+B. A megfigyelt minta pontosan 95%-a 40–75 pontot kapott.
+
+C. Az eljárás 95%-os megbízhatósággal a feltételes populáció legalább 95%-át lefedő tartományt ad.
+
+. . .
+
+**Helyes: C.** A feltételek és a célpopuláció megnevezése az értelmezés része.
+
+# Számítási kitekintés
+
+## Hogyan készült az ábra toleranciasávja?
+
+Konzervatív, normális modellen alapuló konstrukciót alkalmaztunk. Adott $x_0$ mellett:
+
+$$h_0=\frac1n+\frac{(x_0-\bar x)^2}{\sum_i(x_i-\bar x)^2},\qquad \nu=n-2.$$
+
+Legyen
+
+$$a=t_{1-\alpha/4,\nu}s\sqrt{h_0},\qquad
+\sigma_U=s\sqrt{\frac{\nu}{\chi^2_{\alpha/2,\nu}}}.$$
+
+Ekkor a használt intervallum:
+
+$$\widehat y_0\ \pm\left[a+z_{(1+P)/2}\sigma_U\right].$$
+
+Ez **nem optimális szélességű** és nem egy általános egzakt toleranciafaktor-képlet.
+
+::: {.notes}
+Az átlagra vonatkozó kétoldali intervallum hibavalószínűsége alpha/2; a szórás felső korlátjának hibavalószínűsége szintén alpha/2. A Bonferroni-egyenlőtlenség szerint legalább 1-alpha valószínűséggel mindkettő érvényes. Ekkor a becsült átlag körüli, a plusz átlagbizonytalansággal kibővített tartomány tartalmazza a valódi központi P-hányadot. Ez igazolja a konzervatív pontonkénti lefedettséget a normális homoszkedasztikus modellben.
+:::
+
+## Dedikált R-eljárás: tolerance csomag
+
+```{r}
+#| echo: true
+#| eval: false
+# install.packages("tolerance")
+library(tolerance)
+
+modell <- lm(y ~ x, data=d)
+regtol.int(
+  reg=modell,
+  new.x=data.frame(x=10),
+  side=2,
+  alpha=0.05,
+  P=0.95
+)
+```
+
+- `side=2`: kétoldali határok.
+- `alpha=0.05`: 95%-os megbízhatóság.
+- `P=0.95`: legalább 95%-os populációs lefedettség.
+
+Ez a nem futtatott kód dedikált eljárást mutat; az ábrák a külön dokumentált konzervatív konstrukcióval készülnek. A különböző eljárások nem feltétlenül adnak azonos számokat.
+
+## Terminológiai csapda az R dokumentációjában
+
+A `predict.lm()` dokumentációja a prediction intervallum mellett zárójelben a „tolerance” kifejezést is használja.
+
+A `predict(..., interval="prediction", level=.95)` azonban **nem** valósítja meg a jelen diasorban tárgyalt, két százalékkal megadott 95% / 95% populációs toleranciagaranciát.
+
+Mindig azt ellenőrizze, hogy az eljárás **mit fed le, milyen valószínűségi értelemben**, és megadható-e külön a populációhányad és a megbízhatóság.
+
+## Összefoglalás és források
+
+- Konfidenciaintervallum: **paraméter / feltételes átlag**.
+- Predikciós intervallum: **új egyéni kimenet**.
+- Toleranciaintervallum: **populációhányad, külön megadott megbízhatósággal**.
+
+Források:
+
+- [NIST: Normal tolerance intervals](https://www.itl.nist.gov/div898/handbook/prc/section2/prc263.htm).
+- [NIST: Regression prediction and tolerance intervals](https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd132.htm).
+- [CRAN: tolerance kézikönyv](https://cran.r-project.org/web/packages/tolerance/tolerance.pdf).
+- [R: predict.lm](https://stat.ethz.ch/R-manual/R-devel/library/stats/help/predict.lm.html).
+
+Az ábrák szimulált adatokat használnak. A kézi toleranciafaktor-számítás nem javasolt BA-szintű számonkérési követelmény.

@@ -1,0 +1,272 @@
+---
+title: "Átfedő pontok megjelenítése"
+subtitle: "Pontdiagram-alternatívák szimulált adatokkal"
+lang: hu
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    transition: fade
+    width: 1600
+    height: 900
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| include: false
+library(ggplot2)
+library(hexbin)
+set.seed(20261005)
+theme_set(
+  theme_minimal(base_size = 17) +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(face = "bold"),
+      legend.position = "right"
+    )
+)
+
+# Nagy, folytonos változókból álló szimulált minta
+n <- 6000
+income <- rlnorm(n, meanlog = 10.55, sdlog = 0.55) / 1000
+life_satisfaction <- pmin(10, pmax(0,
+  3.0 + 1.15 * log(income + 1) + rnorm(n, 0, 1.55)
+))
+continuous <- data.frame(income, life_satisfaction)
+
+# Két, erősen diszkrét sorrendi változó
+n_ord <- 700
+latent_interest <- rnorm(n_ord)
+latent_news <- 0.65 * latent_interest + rnorm(n_ord, 0, 0.85)
+political_interest <- cut(latent_interest,
+                           breaks = c(-Inf, -0.85, -0.25, 0.35, 0.95, Inf),
+                           labels = 1:5)
+news_following <- cut(latent_news,
+                      breaks = c(-Inf, -0.85, -0.25, 0.35, 0.95, Inf),
+                      labels = 1:5)
+ordinal <- data.frame(
+  political_interest = as.integer(as.character(political_interest)),
+  news_following = as.integer(as.character(news_following))
+)
+
+# Sorrendi csoport és mennyiségi kimenet
+income_difficulty <- cut(log(income),
+                         breaks = quantile(log(income), probs = seq(0, 1, .2)),
+                         include.lowest = TRUE,
+                         labels = c("Nagyon nehéz", "Nehéz", "Közepes", "Könnyű", "Nagyon könnyű"))
+grouped <- data.frame(income_difficulty, life_satisfaction)
+```
+
+# Miért probléma az átfedés?
+
+## Amikor a pontdiagram „folttá” válik
+
+- **Átfedés (overplotting):** több megfigyelés ugyanarra vagy közel ugyanarra a koordinátára kerül.
+- Emiatt nem látszik, hol koncentrálódnak az esetek.
+- Különösen gyakori nagy mintáknál és diszkrét/sorrendi válaszskáláknál.
+- A cél nem mindig az, hogy minden egyes pontot megmutassunk: sokszor a sűrűség, a gyakoriság vagy a csoportos eloszlás a fontos.
+
+**Minden ábra az órán szimulált, fiktív adatokat használ.**
+
+## Ugyanaz a kérdés, több nézet
+
+Példakérdés:
+
+> Hogyan függ össze egy illusztratív jövedelmi mutató és az élettel való elégedettség egy $n=6000$ fős mintában?
+
+A következő diákon ugyanazt a folytonos adatfelhőt ábrázoljuk különböző módokon.
+
+# Folytonos változók: átlátszóság és binning
+
+## Kiindulás: hagyományos pontdiagram
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", size = 1.3) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
+              color = "#b2182b", linewidth = 1) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Hagyományos pontdiagram: sok pont elfedi egymást",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+A nagy mintában az ismétlődő/közeli pontok összefolynak. Nem látszik jól, hogy hol van sok, illetve kevés megfigyelés.
+
+## Átlátszó pontok
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", alpha = .10, size = 1.25) +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
+              color = "#b2182b", linewidth = 1) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Átlátszó pontok: a sűrűbb területek sötétebbek",
+       subtitle = "Mérsékelt átfedésnél jó első megoldás",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+Az átlátszóság megőrzi az egyedi megfigyeléseket, miközben a sötétebb részek több átfedő esetet jeleznek.
+
+## Kétdimenziós binning: téglalapok
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_bin_2d(bins = 35) +
+  scale_fill_viridis_c(option = "C", name = "Esetek\nszáma") +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Kétdimenziós hisztogram",
+       subtitle = "Minden téglalap a benne lévő megfigyelések számát mutatja",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+A `geom_bin_2d()` rácscellákra osztja a síkot, majd cellánként összeszámolja az eseteket.
+
+## Hexbin diagram
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_hex(bins = 35) +
+  scale_fill_viridis_c(option = "C", name = "Esetek\nszáma") +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Hexbin diagram",
+       subtitle = "A hatszögek színe a megfigyelések számát jelzi",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+A hexbin diagram ugyanúgy sűríti az adatokat, mint a téglalapokra épülő binning, de hatszög alakú cellákkal.
+
+## Kétdimenziós sűrűségkontúrok
+
+```{r}
+#| fig-width: 10
+#| fig-height: 5.2
+ggplot(continuous, aes(income, life_satisfaction)) +
+  geom_point(color = "#2166ac", alpha = .06, size = 1) +
+  geom_density_2d(color = "#b2182b", linewidth = .8) +
+  coord_cartesian(xlim = c(0, 120)) +
+  labs(title = "Kétdimenziós sűrűségkontúrok",
+       subtitle = "A vonalak a becsült adatsűrűség szintjeit jelzik",
+       x = "Illusztratív háztartási jövedelem (ezer egység)",
+       y = "Élettel való elégedettség (0–10)")
+```
+
+A kontúrok simított becslést mutatnak: szemléletesek, de nem közvetlen esetszámok.
+
+# Sorrendi változók: jitter és gyakoriság
+
+## Diszkrét válaszok: miért sok az átfedés?
+
+Két ötfokú változó esetén csak $5\times5=25$ lehetséges koordinátapár van. Sok száz válaszadó ugyanazokra a pontokra kerülhet.
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_point(color = "#2166ac", size = 2.2, alpha = .7) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  labs(title = "Sorrendi skálák: az azonos pontok elfedik egymást",
+       x = "Politikai érdeklődés (1–5)",
+       y = "Hírkövetés gyakorisága (1–5)")
+```
+
+## Jitter: kicsi, véletlen eltolás
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+set.seed(20261005)
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_jitter(width = .15, height = .15, color = "#2166ac", alpha = .35, size = 1.9) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  labs(title = "Jitterelt pontdiagram",
+       subtitle = "A pontok eltolása kizárólag vizuális segédeszköz",
+       x = "Politikai érdeklődés (eredeti kategória: 1–5)",
+       y = "Hírkövetés gyakorisága (eredeti kategória: 1–5)")
+```
+
+A jitter **nem módosítja** az adatokat vagy a Spearman-korreláció számítását; csak láthatóvá teszi az átfedő eseteket.
+
+## Gyakoriságot mutató pontdiagram
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+ggplot(ordinal, aes(political_interest, news_following)) +
+  geom_count(color = "#2166ac", alpha = .75) +
+  scale_x_continuous(breaks = 1:5) + scale_y_continuous(breaks = 1:5) +
+  scale_size_area(max_size = 18, name = "Esetek\nszáma") +
+  labs(title = "Gyakoriságot ábrázoló pontdiagram",
+       subtitle = "A kör területe az adott koordinátapárhoz tartozó esetek számát jelzi",
+       x = "Politikai érdeklődés (1–5)",
+       y = "Hírkövetés gyakorisága (1–5)")
+```
+
+Sorrendi válaszoknál ez gyakran őszintébb, mint a jitter: pontosan megmaradnak az eredeti kategóriák, és közvetlenül látszik a gyakoriság.
+
+# Kategóriák és mennyiségi változó
+
+## Dobozdiagram és jitter
+
+Ha az egyik változó néhány kategóriát tartalmaz, a pontdiagram helyett mutasd az eloszlást csoportonként.
+
+```{r}
+#| fig-width: 11
+#| fig-height: 5.5
+ggplot(grouped, aes(income_difficulty, life_satisfaction)) +
+  geom_boxplot(width = .58, outlier.shape = NA, fill = "#b3cde3", color = "#2166ac") +
+  geom_jitter(width = .13, alpha = .13, size = 1.1, color = "#2166ac") +
+  labs(title = "Élettel való elégedettség jövedelmi nehézség szerint",
+       subtitle = "Dobozdiagram: eloszlás; jitterelt pontok: egyedi megfigyelések",
+       x = "Észlelt jövedelmi helyzet (szimulált kategóriák)",
+       y = "Élettel való elégedettség (0–10)") +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+# Választási útmutató
+
+## Melyik ábrát válasszam?
+
+| Adathelyzet | Első választás | Mire figyelj? |
+|:--|:--|:--|
+| Mérsékelt átfedés, folytonos változók | Átlátszó pontok | Ne legyen túl sötét vagy túl nagy a pont |
+| Nagy minta, folytonos változók | Hexbin vagy `geom_bin_2d()` | A binszám befolyásolja a látott mintázatot |
+| Nagy minta, a sűrűség alakja érdekel | 2D kontúr | Simított becslés, nem közvetlen esetszám |
+| Kevés kategória mindkét tengelyen | `geom_count()` | Pontterületet, ne pontsugarat értelmezzünk gyakoriságként |
+| Sorrendi kategóriák, egyedi esetek is érdekelnek | Jitter | Az eltolás csak látvány, az eredeti értékek maradnak |
+| Kategória + folytonos változó | Dobozdiagram + jitter | A csoportos eloszlást is mutasd meg |
+
+## Beszéljük meg
+
+Ugyanarra az adatra a különböző grafikonok más kérdést tesznek könnyen megválaszolhatóvá:
+
+- Hol van **sok** megfigyelés?
+- Látszanak-e **egyedi esetek** és kiugró értékek?
+- Milyen az **eloszlás** csoportonként?
+- Folytonos, sorrendi vagy kategorikus változókról van szó?
+
+**Alapszabály:** az ábra ne csak szebb legyen, hanem őszintébben mutassa meg az adat szerkezetét.
+
+# Források
+
+## További olvasmány és funkciók
+
+- ggplot2: [`geom_jitter()`](https://ggplot2.tidyverse.org/reference/geom_jitter.html)
+- ggplot2 Book: [Layers and binning geoms](https://ggplot2-book.org/layers.html)
+- ggplot2 / RStudio Cheat Sheet: [Data visualization](https://rstudio.github.io/cheatsheets/html/data-visualization.html)
+
+A `geom_jitter()` az átfedő pontok véletlen, kismértékű eltolásával segít; a `geom_bin2d()`, a `geom_hex()` és a 2D sűrűségkontúrok pedig a sok pont sűrűségét vagy cellánkénti gyakoriságát foglalják össze. [web:148][web:152][web:153]
