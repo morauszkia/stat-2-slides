@@ -81,7 +81,7 @@ Konstanssal illesztett OLS esetén:
 
 $$
 \begin{align}
-SST&=\sum_{i=1}^n(Y_i-\bar Y)^2=SSR+SSE \\
+SST&=\sum_{i=1}^n(Y_i-\bar Y)^2=SSR+SSH \\
 SSR&=\sum_{i=1}^n(\widehat Y_i-\bar Y)^2 \\
 SSH&=\sum_{i=1}^n(Y_i-\widehat Y_i)^2=\sum_{i=1}^ne_i^2
 \end{align}
@@ -89,14 +89,14 @@ $$
 
 - $SST$: teljes mintabeli változékonyság
 - $SSR$: a modell által leírt változékonyság
-- $SSE$: a maradék változékonysága
+- $SSH$: a maradék változékonysága
 
 ## A determinációs együttható
 
 Azt fejezi ki, hogy a magyarázó változó(k) a függő változó varianciájának (a kimeneti változékonyságnak) hányadrészét magyarázza(k)?
 
 $$
-R^2=\frac{SSR}{SST}=1-\frac{SSE}{SST}
+R^2=\frac{SSR}{SST}=1-\frac{SSH}{SST}
 $$
 
 Egyváltozós regresszió esetében $R^2=r^2$

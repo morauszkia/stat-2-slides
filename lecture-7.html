@@ -184,7 +184,7 @@
 <p>Konstanssal illesztett OLS esetén:</p>
 <p><span class="math display">\[
 \begin{align}
-SST&amp;=\sum_{i=1}^n(Y_i-\bar Y)^2=SSR+SSE \\
+SST&amp;=\sum_{i=1}^n(Y_i-\bar Y)^2=SSR+SSH \\
 SSR&amp;=\sum_{i=1}^n(\widehat Y_i-\bar Y)^2 \\
 SSH&amp;=\sum_{i=1}^n(Y_i-\widehat Y_i)^2=\sum_{i=1}^ne_i^2
 \end{align}
@@ -192,14 +192,14 @@ SSH&amp;=\sum_{i=1}^n(Y_i-\widehat Y_i)^2=\sum_{i=1}^ne_i^2
 <ul>
 <li class="fragment"><span class="math inline">\(SST\)</span>: teljes mintabeli változékonyság</li>
 <li class="fragment"><span class="math inline">\(SSR\)</span>: a modell által leírt változékonyság</li>
-<li class="fragment"><span class="math inline">\(SSE\)</span>: a maradék változékonysága</li>
+<li class="fragment"><span class="math inline">\(SSH\)</span>: a maradék változékonysága</li>
 </ul>
 </section>
 <section id="a-determinációs-együttható" class="slide level2">
 <h2>A determinációs együttható</h2>
 <p>Azt fejezi ki, hogy a magyarázó változó(k) a függő változó varianciájának (a kimeneti változékonyságnak) hányadrészét magyarázza(k)?</p>
 <p><span class="math display">\[
-R^2=\frac{SSR}{SST}=1-\frac{SSE}{SST}
+R^2=\frac{SSR}{SST}=1-\frac{SSH}{SST}
 \]</span></p>
 <p>Egyváltozós regresszió esetében <span class="math inline">\(R^2=r^2\)</span></p>
 <p>A magas <span class="math inline">\(R^2\)</span> sem jelent okságot!</p>
