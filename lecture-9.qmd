@@ -1,0 +1,270 @@
+---
+title: "Lineáris regresszió IV."
+subtitle: "Statisztika 2. előadás"
+author: ""
+lang: hu
+format:
+  revealjs:
+    theme: league
+    slide-number: c/t
+    chalkboard: false
+    incremental: true
+    transition: slide
+    preview-links: auto
+    footer: "Lineáris regresszió"
+    code-overflow: wrap
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| include: false
+library(ggplot2)
+
+set.seed(20261006)
+theme_set(theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank()))
+n <- 260
+adat <- data.frame(tanulas=runif(n,2,20), elozetes=rnorm(n,60,10),
+                   munka=runif(n,0,25), kor=runif(n,18,35),
+                   kepzes=factor(sample(c("Nappali","Levelező","Esti"),n,TRUE),
+                                 levels=c("Nappali","Levelező","Esti")))
+adat$pont <- 20 + 1.6*adat$tanulas + .45*adat$elozetes - .22*adat$munka +
+  ifelse(adat$kepzes=="Levelező",-3,ifelse(adat$kepzes=="Esti",2,0)) + rnorm(n,0,7)
+m1 <- lm(pont~tanulas,data=adat)
+m2 <- lm(pont~tanulas+elozetes+munka,data=adat)
+mcat <- lm(pont~tanulas+elozetes+munka+kepzes,data=adat)
+tabla <- function(m) {
+  a <- as.data.frame(coef(summary(m)))
+  ci <- confint(m)
+  knitr::kable(data.frame(Tag=rownames(a), B=a[,1], SE=a[,2], t=a[,3],
+                         p=a[,4], Also=ci[,1], Felso=ci[,2]),digits=3,row.names=FALSE)
+}
+adat$becsult <- fitted(m1)
+adat$maradek <- resid(m1)
+```
+
+# Nemlinearitás
+
+## Görbület modellezése
+
+$$\widehat Y=b_0+b_1X+b_2X^2$$
+
+Ez lineáris modell a **paraméterekben**, bár az $X$–$Y$ kapcsolat görbe.
+
+$$\frac{\partial\widehat Y}{\partial X}=b_1+2b_2X.$$
+
+A kvadratikus tag mellett $b_1$ önmagában nem az egész tartomány meredeksége. 
+
+## Kvadratikus kapcsolat illesztése
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.7
+set.seed(71)
+curve <- data.frame(kor=runif(250,18,80))
+curve$aktivitas <- 20+1.1*curve$kor-.011*curve$kor^2+rnorm(250,0,5)
+mq <- lm(aktivitas~kor+I(kor^2),data=curve)
+ggplot(curve,aes(kor,aktivitas))+geom_point(alpha=.5,color="#2166ac")+
+ geom_smooth(method="lm",formula=y~x+I(x^2),se=FALSE,color="#b2182b",linewidth=1)+
+ labs(x="Életkor",y="Illusztratív aktivitási pontszám")
+```
+
+## Logaritmikus transzformációk
+
+| Modell | A meredekség értelmezése |
+|:--|:--|
+| $Y=b_0+b_1\ln X$ | $X$ kb. 1%-os növekedése kb. $b_1/100$ egységnyi $Y$-változással jár |
+| $\ln Y=b_0+b_1X$ | Egy $X$-egységhez kb. $100b_1$%-os változás társul a modell szerinti geometriai szinten |
+| $\ln Y=b_0+b_1\ln X$ | $b_1$ rugalmasság: 1%-os $X$-eltéréshez kb. $b_1$%-os eltérés társul |
+
+A log-lineáris eset pontos arányos változása $100(e^{b_1}-1)$%. Log csak pozitív értékekre vehető; az eredeti skálára való átlag-előrejelzésnél az egyszerű exponenciálás torzíthat.
+
+# Feltevések és diagnosztika
+
+## Melyik feltevés mire kell?
+
+| Feltevés / követelmény | Jelentőség |
+|:--|:--|
+| Helyes feltételes átlag, $E(\varepsilon\mid X)=0$ | A célzott paraméterek megfelelő becslése |
+| Nincs tökéletes kollinearitás | Együtthatók azonosíthatósága |
+| Független hibák / megfelelő mintaterv | Bizonytalanság helyes kezelése |
+| Állandó hibavariancia | Klasszikus standard hibák és hatékonyság |
+| Normális feltételes hibatagok | Kis mintás egzakt klasszikus próbák, normálalapú predikció |
+
+**Sem a prediktoroknak, sem a nyers kimenetnek nem kell normális eloszlásúnak lennie.**
+
+## Mit ellenőrizhetünk, és mit nem?
+
+- A maradékdiagramok segítenek felismerni görbületet, heteroszkedaszticitást és szokatlan eseteket.
+- Az elhagyott változók, fordított okság és mérési hibák nem zárhatók ki egy „szép” maradékábrával.
+- A klaszterezettség gyakran a kutatási tervből derül ki, nem a pontdiagramról.
+- Az előfeltevés-próba nemszignifikáns eredménye nem bizonyítja a feltevés teljesülését.
+
+Diagnosztika + elmélet + mintaterv + érzékenységvizsgálat szükséges.
+
+## Maradékok a becsült értékek függvényében
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.7
+ggplot(adat,aes(becsult,maradek))+geom_point(alpha=.6,color="#2166ac")+
+ geom_hline(yintercept=0,linetype="dashed")+
+ geom_smooth(method="loess",se=FALSE,color="#b2182b")+
+ labs(x="Becsült érték",y="Maradék")
+```
+
+A görbe mintázat a feltételes átlag specifikációs problémájára utalhat. A nulla körüli maradékátlag önmagában nem elegendő.
+
+## Heteroszkedaszticitás: változó szóródás
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.7
+set.seed(72)
+het <- data.frame(x=runif(300,1,20))
+het$y <- 10+2*het$x+rnorm(300,0,1+.6*het$x)
+mh <- lm(y~x,data=het)
+het$fit <- fitted(mh);het$e <- resid(mh)
+ggplot(het,aes(fit,e))+geom_point(alpha=.6,color="#2166ac")+
+ geom_hline(yintercept=0,linetype="dashed")+labs(x="Becsült érték",y="Maradék",title="Tölcsérszerű szóródás")
+```
+
+## Robusztus standard hibák
+
+Heteroszkedaszticitás esetén indokolt lehet heteroszkedaszticitás-robosztus (HC0-HC3: _heteroscedasticity-consistent_) standard hibát használni.
+
+- Az OLS-együtthatók nem változnak; a standard hibák, próbák és intervallumok igen.
+- Nem javítja ki a hibás specifikációt vagy a mérési hibát.
+
+## Normál Q–Q-ábra
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.7
+qq <- data.frame(e=rstandard(m2))
+ggplot(qq,aes(sample=e))+stat_qq(color="#2166ac",alpha=.7)+
+ stat_qq_line(color="#b2182b")+
+ labs(x="Elméleti normál kvantilis",y="Standardizált maradék kvantilise")
+```
+
+Nagy eltérések a széleken nehéz farkakra vagy kirívó esetekre utalhatnak. Nem a nyers $Y$ normalitását vizsgáljuk.
+
+## Függetlenség és klaszterezettség
+
+Iskolák, háztartások, települések és országok szerint csoportosított esetek hibái összefügghetnek.
+
+- Az egyszerű OLS standard hibák túl kicsik lehetnek.
+- Kezelni szükséges: mintavételnek megfelelő varianciaszámítás vagy többszintű modell lehet szükséges.
+- Idősornál az autokorreláció külön modell- és következtetési kérdés.
+
+## Kiugró, nagy leverage, befolyásos
+
+| Fogalom | Jelentés |
+|:--|:--|
+| Kiugró kimenet | Nagy maradék a prediktorokhoz képest |
+| Nagy leverage | Szokatlan prediktorérték vagy kombináció |
+| Befolyásos eset | Jelentősen módosítja az illesztést, ha kihagyjuk |
+
+Egy eset lehet nagy leverage-ű kis maradékkal, vagy kiugró kis leverage mellett. A Cook-távolság mindkét szempontot figyelembe veszi.
+
+## Befolyásvizsgálat: Cook-távolság
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.7
+diag <- data.frame(eset=seq_len(nrow(adat)),cook=cooks.distance(m2))
+ggplot(diag,aes(eset,cook))+geom_col(fill="#2166ac")+
+ geom_hline(yintercept=4/nrow(adat),linetype="dashed",color="#b2182b")+
+ labs(x="Eset sorszáma",y="Cook-távolság",caption="A 4/n vonal heurisztikus figyelmeztetés, nem automatikus törlési szabály.")
+```
+
+## Mit tegyen szokatlan esettel?
+
+1. Ellenőrizze az adatfelvételt, kódolást és mértékegységet.
+2. Vizsgálja meg, ugyanahhoz a célpopulációhoz tartozik-e.
+3. Hasonlítsa össze az indokolt elemzési változatokat.
+4. Dokumentálja a kizárás vagy megtartás okát.
+
+Ne töröljön eseteket kizárólag azért, hogy jobb $p$-értéket vagy $R^2$-t kapjon.
+
+## Multikollinearitás
+
+Erősen együttjáró prediktoroknál nehezebb elkülöníteni az egyedi meredekségeket.
+
+$$VIF_j=\frac{1}{1-R_j^2},$$
+
+ahol $R_j^2$ az $X_j$ többi prediktorra történő regressziójából származik.
+
+- Standard hibák nőhetnek; együtthatók instabillá válhatnak.
+- Az előrejelzés ettől még lehet jó.
+- Nincs minden helyzetben kötelező VIF-határ.
+- Prediktort ne hagyjon el kizárólag VIF alapján, ha a kutatási kérdéshez szükséges.
+
+## Diagnosztikai munkafolyamat
+
+1. Vizsgálja meg az adatok tartományát, hiányait és eloszlását.
+2. Ellenőrizze a mintatervet és a kutatási kérdést.
+3. Illessze az elméletileg indokolt modellt.
+4. Tekintse meg a maradék-, Q–Q- és befolyásábrákat.
+5. Vizsgálja meg a nemlinearitást, csoportkülönbségeket és kollinearitást.
+6. Szükség szerint javítsa a specifikációt vagy a következtetési módszert.
+7. Közöljön érzékenységvizsgálatot és korlátokat.
+
+# Adatminőség
+
+## Hiányzó adatok
+
+- A teljeseset-elemzés csökkenti a mintát, és torzíthat, ha a hiányzás szerkezete ezt okozza.
+- A modellek között eltérő esetszám félrevezető összehasonlítást eredményezhet.
+- A hiányzó érték nem azonos a nullával.
+- Az egyszerű átlaggal pótlás alábecsülheti a bizonytalanságot és torzíthatja a kapcsolatokat.
+- Többszörös imputáció megfelelő modell és hiányzási feltevések mellett lehetséges kiterjesztés.
+
+A közlésben szerepeljen az elemzett $n$ és a hiánykezelés.
+
+## Mérési hiba, elhagyott változó, endogenitás
+
+- A klasszikus prediktormérési hiba egyszerű helyzetben gyengítheti a meredekséget; többváltozós esetben bonyolultabb torzítások lehetnek.
+- Ha a releváns elhagyott változó együtt jár a prediktorral és a kimenettel, a meredekség torzulhat a célzott értelmezéshez képest.
+- Fordított okság is sértheti az exogenitást.
+
+Az elemzés minősége az adatok és a kutatási terv minőségétől is függ.
+
+## Mikor nem OLS a jó választás?
+
+| Kimenet / adathelyzet | Lehetséges továbblépés |
+|:--|:--|
+| Bináris esemény | Logisztikus regresszió |
+| Esetszám / darabszám | Poisson vagy negatív binomiális modell |
+| Sorrendi kimenet | Ordinális modell |
+| Iskolákba / országokba ágyazott esetek | Többszintű modell / tervalapú következtetés |
+| Eseményig eltelt idő | Túlélési modell |
+
+# Eredményközlés és számonkérés
+
+## Együtthatóábra
+
+```{r}
+#| fig-width: 10
+#| fig-height: 4.6
+co <- coef(m2)[-1]; ci <- confint(m2)[-1,,drop=FALSE]
+ct <- data.frame(tag=names(co),b=unname(co),lo=ci[,1],hi=ci[,2])
+ggplot(ct,aes(b,tag))+geom_vline(xintercept=0,linetype="dashed")+
+ geom_segment(aes(x=lo,xend=hi,yend=tag),color="#2166ac",linewidth=1)+
+ geom_point(color="#b2182b",size=3)+
+ labs(x="Nem standardizált együttható, 95%-os intervallum",y=NULL)
+```
+
+A különböző mértékegységű együtthatók nagyságát ne kezelje automatikus fontossági rangsorként.
+
+## Mintaszöveg dinamikus eredményekkel
+
+```{r}
+#| results: asis
+b <- coef(m2)["tanulas"]; ci <- confint(m2)["tanulas",]
+cat(sprintf("A szimulált mintán (%d eset) az előzetes tudás és a munkaidő figyelembevétele mellett egy további heti tanulási órához %.2f ponttal magasabb becsült tesztpontszám társult (95%%-os CI: %.2f–%.2f). A modell R² értéke %.2f. Ez az eredmény feltételes kapcsolatot ír le, és önmagában nem igazolja a tanulási idő oksági hatását.",nobs(m2),b,ci[1],ci[2],summary(m2)$r.squared))
+```
+
+A közlés mindig nevezze meg a kontrollokat és a mértékegységeket.
