@@ -6,8 +6,8 @@
 <script src="lecture-9_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="lecture-9_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="lecture-9_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="lecture-9_files/libs/quarto-html/quarto-syntax-highlighting-dark-0a6b7249c26820e032cb0bd839ff02b1.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.9.38">
+<link href="lecture-9_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="">
   <title>Lineáris regresszió IV.</title>
@@ -17,9 +17,6 @@
   <link rel="stylesheet" href="lecture-9_files/libs/revealjs/dist/reset.css">
   <link rel="stylesheet" href="lecture-9_files/libs/revealjs/dist/reveal.css">
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -32,7 +29,7 @@
       vertical-align: middle;
     }
   </style>
-  <link rel="stylesheet" href="lecture-9_files/libs/revealjs/dist/theme/quarto-49263aa2590dfcde0034ef1cfb6d8584.css">
+  <link rel="stylesheet" href="lecture-9_files/libs/revealjs/dist/theme/quarto-a5139cbddc8367a1be166dea7034a67f.css">
   <link href="lecture-9_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="lecture-9_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="lecture-9_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -153,7 +150,7 @@
 <h2>Kvadratikus kapcsolat illesztése</h2>
 
 <img data-src="lecture-9_files/figure-revealjs/unnamed-chunk-2-1.png" width="960" class="r-stretch"></section>
-<section id="logaritmikus-transzformációk" class="slide level2">
+<section id="logaritmikus-transzformációk" class="slide level2 smaller">
 <h2>Logaritmikus transzformációk</h2>
 <table class="caption-top">
 <colgroup>
@@ -188,8 +185,8 @@
 <h1>Feltevések és diagnosztika</h1>
 
 </section>
-<section id="melyik-feltevés-mire-kell" class="slide level2">
-<h2>Melyik feltevés mire kell?</h2>
+<section id="melyik-feltevés-miért-fontos" class="slide level2 smaller">
+<h2>Melyik feltevés miért fontos?</h2>
 <table class="caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -234,7 +231,9 @@
 <li class="fragment">A klaszterezettség gyakran a kutatási tervből derül ki, nem a pontdiagramról.</li>
 <li class="fragment">Az előfeltevés-próba nemszignifikáns eredménye nem bizonyítja a feltevés teljesülését.</li>
 </ul>
+<div class="fragment">
 <p>Diagnosztika + elmélet + mintaterv + érzékenységvizsgálat szükséges.</p>
+</div>
 </section>
 <section id="maradékok-a-becsült-értékek-függvényében" class="slide level2">
 <h2>Maradékok a becsült értékek függvényében</h2>
@@ -267,36 +266,45 @@
 <li class="fragment">Idősornál az autokorreláció külön modell- és következtetési kérdés.</li>
 </ul>
 </section>
-<section id="kiugró-nagy-leverage-befolyásos" class="slide level2">
+<section id="kiugró-nagy-leverage-befolyásos" class="slide level2 smaller">
 <h2>Kiugró, nagy leverage, befolyásos</h2>
 <table class="caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Fogalom</th>
 <th style="text-align: left;">Jelentés</th>
+<th style="text-align: left;">Hüvelyjkujjszabály</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Kiugró kimenet</td>
-<td style="text-align: left;">Nagy maradék a prediktorokhoz képest</td>
+<td style="text-align: left;">Kiugró érték</td>
+<td style="text-align: left;">Nagy maradék a várthoz képest</td>
+<td style="text-align: left;"><span class="math inline">\(|\text{st.resid}|&gt;2\)</span></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Nagy leverage</td>
-<td style="text-align: left;">Szokatlan prediktorérték vagy kombináció</td>
+<td style="text-align: left;">Nagy hatóerejű érték</td>
+<td style="text-align: left;">Prediktor átlagától való nagy eltérés, szokatlan prediktorérték vagy kombináció</td>
+<td style="text-align: left;"><span class="math inline">\(h_i&gt;\frac{2k+2}{n}\)</span></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Befolyásos eset</td>
+<td style="text-align: left;">Torzító pont</td>
 <td style="text-align: left;">Jelentősen módosítja az illesztést, ha kihagyjuk</td>
+<td style="text-align: left;">Cook’s &gt; 4/n, DFBeta &gt; 4/n</td>
 </tr>
 </tbody>
 </table>
-<p>Egy eset lehet nagy leverage-ű kis maradékkal, vagy kiugró kis leverage mellett. A Cook-távolság mindkét szempontot figyelembe veszi.</p>
 </section>
 <section id="befolyásvizsgálat-cook-távolság" class="slide level2">
 <h2>Befolyásvizsgálat: Cook-távolság</h2>
 
-<img data-src="lecture-9_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<img data-src="lecture-9_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"><p>A 4/n vonal heurisztikus figyelmeztetés, nem automatikus törlési szabály.</p>
+</section>
 <section id="mit-tegyen-szokatlan-esettel" class="slide level2">
 <h2>Mit tegyen szokatlan esettel?</h2>
 <ol type="1">
@@ -305,13 +313,16 @@
 <li class="fragment">Hasonlítsa össze az indokolt elemzési változatokat.</li>
 <li class="fragment">Dokumentálja a kizárás vagy megtartás okát.</li>
 </ol>
+<div class="fragment">
 <p>Ne töröljön eseteket kizárólag azért, hogy jobb <span class="math inline">\(p\)</span>-értéket vagy <span class="math inline">\(R^2\)</span>-t kapjon.</p>
+</div>
 </section>
-<section id="multikollinearitás" class="slide level2">
+<section id="multikollinearitás" class="slide level2 smaller">
 <h2>Multikollinearitás</h2>
 <p>Erősen együttjáró prediktoroknál nehezebb elkülöníteni az egyedi meredekségeket.</p>
 <p><span class="math display">\[VIF_j=\frac{1}{1-R_j^2},\]</span></p>
 <p>ahol <span class="math inline">\(R_j^2\)</span> az <span class="math inline">\(X_j\)</span> többi prediktorra történő regressziójából származik.</p>
+<p>Hüvelykujjszabály: <span class="math inline">\(VIF&gt;10\)</span></p>
 <ul>
 <li class="fragment">Standard hibák nőhetnek; együtthatók instabillá válhatnak.</li>
 <li class="fragment">Az előrejelzés ettől még lehet jó.</li>
@@ -319,7 +330,7 @@
 <li class="fragment">Prediktort ne hagyjon el kizárólag VIF alapján, ha a kutatási kérdéshez szükséges.</li>
 </ul>
 </section>
-<section id="diagnosztikai-munkafolyamat" class="slide level2">
+<section id="diagnosztikai-munkafolyamat" class="slide level2 smaller">
 <h2>Diagnosztikai munkafolyamat</h2>
 <ol type="1">
 <li class="fragment">Vizsgálja meg az adatok tartományát, hiányait és eloszlását.</li>
@@ -336,7 +347,7 @@
 <h1>Adatminőség</h1>
 
 </section>
-<section id="hiányzó-adatok" class="slide level2">
+<section id="hiányzó-adatok" class="slide level2 smaller">
 <h2>Hiányzó adatok</h2>
 <ul>
 <li class="fragment">A teljeseset-elemzés csökkenti a mintát, és torzíthat, ha a hiányzás szerkezete ezt okozza.</li>
@@ -345,7 +356,9 @@
 <li class="fragment">Az egyszerű átlaggal pótlás alábecsülheti a bizonytalanságot és torzíthatja a kapcsolatokat.</li>
 <li class="fragment">Többszörös imputáció megfelelő modell és hiányzási feltevések mellett lehetséges kiterjesztés.</li>
 </ul>
+<div class="fragment">
 <p>A közlésben szerepeljen az elemzett <span class="math inline">\(n\)</span> és a hiánykezelés.</p>
+</div>
 </section>
 <section id="mérési-hiba-elhagyott-változó-endogenitás" class="slide level2">
 <h2>Mérési hiba, elhagyott változó, endogenitás</h2>
@@ -354,7 +367,9 @@
 <li class="fragment">Ha a releváns elhagyott változó együtt jár a prediktorral és a kimenettel, a meredekség torzulhat a célzott értelmezéshez képest.</li>
 <li class="fragment">Fordított okság is sértheti az exogenitást.</li>
 </ul>
+<div class="fragment">
 <p>Az elemzés minősége az adatok és a kutatási terv minőségétől is függ.</p>
+</div>
 </section>
 <section id="mikor-nem-ols-a-jó-választás" class="slide level2">
 <h2>Mikor nem OLS a jó választás?</h2>
@@ -403,10 +418,33 @@
 
 <img data-src="lecture-9_files/figure-revealjs/unnamed-chunk-7-1.png" width="960" class="r-stretch"><p>A különböző mértékegységű együtthatók nagyságát ne kezelje automatikus fontossági rangsorként.</p>
 </section>
-<section id="mintaszöveg-dinamikus-eredményekkel" class="slide level2">
-<h2>Mintaszöveg dinamikus eredményekkel</h2>
+<section id="mintaszöveg" class="slide level2">
+<h2>Mintaszöveg</h2>
 <p>A szimulált mintán (260 eset) az előzetes tudás és a munkaidő figyelembevétele mellett egy további heti tanulási órához 1.40 ponttal magasabb becsült tesztpontszám társult (95%-os CI: 1.24–1.56). A modell R² értéke 0.62. Ez az eredmény feltételes kapcsolatot ír le, és önmagában nem igazolja a tanulási idő oksági hatását.</p>
 <p>A közlés mindig nevezze meg a kontrollokat és a mértékegységeket.</p>
+</section></section>
+<section>
+<section id="összegzés" class="title-slide slide level1 center">
+<h1>Összegzés</h1>
+
+</section>
+<section id="a-regresszió" class="slide level2 smaller">
+<h2>A regresszió</h2>
+<ul>
+<li class="fragment">Mire szolgál?</li>
+<li class="fragment">Miben különbözik a korrelációtól?</li>
+<li class="fragment">Egyszerű modell értelmezése (tengelymetszet, meredekség, <span class="math inline">\(R^2\)</span>)</li>
+<li class="fragment">Hipotézisvizsgálatok (t-próbák, F-próba)</li>
+<li class="fragment">Bővített modellek értelmezése
+<ul>
+<li class="fragment">Dummy változók a modellben</li>
+<li class="fragment">Nominális változók</li>
+<li class="fragment">Ordinális változók kétféle bevonása</li>
+<li class="fragment">Interakció</li>
+<li class="fragment">Nemlineáris összefüggések a lineáris regresszióban</li>
+</ul></li>
+<li class="fragment">Regressziós modellek előteltételei</li>
+</ul>
 
 </section></section>
     </div>

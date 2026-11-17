@@ -71,7 +71,7 @@ ggplot(curve,aes(kor,aktivitas))+geom_point(alpha=.5,color="#2166ac")+
  labs(x="Életkor",y="Illusztratív aktivitási pontszám")
 ```
 
-## Logaritmikus transzformációk
+## Logaritmikus transzformációk {.smaller}
 
 | Modell | A meredekség értelmezése |
 |:--|:--|
@@ -83,7 +83,7 @@ A log-lineáris eset pontos arányos változása $100(e^{b_1}-1)$%. Log csak poz
 
 # Feltevések és diagnosztika
 
-## Melyik feltevés mire kell?
+## Melyik feltevés miért fontos? {.smaller}
 
 | Feltevés / követelmény | Jelentőség |
 |:--|:--|
@@ -101,6 +101,8 @@ A log-lineáris eset pontos arányos változása $100(e^{b_1}-1)$%. Log csak poz
 - Az elhagyott változók, fordított okság és mérési hibák nem zárhatók ki egy „szép” maradékábrával.
 - A klaszterezettség gyakran a kutatási tervből derül ki, nem a pontdiagramról.
 - Az előfeltevés-próba nemszignifikáns eredménye nem bizonyítja a feltevés teljesülését.
+
+. . .
 
 Diagnosztika + elmélet + mintaterv + érzékenységvizsgálat szükséges.
 
@@ -159,15 +161,13 @@ Iskolák, háztartások, települések és országok szerint csoportosított ese
 - Kezelni szükséges: mintavételnek megfelelő varianciaszámítás vagy többszintű modell lehet szükséges.
 - Idősornál az autokorreláció külön modell- és következtetési kérdés.
 
-## Kiugró, nagy leverage, befolyásos
+## Kiugró, nagy leverage, befolyásos {.smaller}
 
-| Fogalom | Jelentés |
-|:--|:--|
-| Kiugró kimenet | Nagy maradék a prediktorokhoz képest |
-| Nagy leverage | Szokatlan prediktorérték vagy kombináció |
-| Befolyásos eset | Jelentősen módosítja az illesztést, ha kihagyjuk |
-
-Egy eset lehet nagy leverage-ű kis maradékkal, vagy kiugró kis leverage mellett. A Cook-távolság mindkét szempontot figyelembe veszi.
+| Fogalom | Jelentés | Hüvelyjkujjszabály |
+|:--|:--|:--|
+| Kiugró érték | Nagy maradék a várthoz képest | $|\text{st.resid}|>2$ |
+| Nagy hatóerejű érték | Prediktor átlagától való nagy eltérés, szokatlan prediktorérték vagy kombináció | $h_i>\frac{2k+2}{n}$ |
+| Torzító pont | Jelentősen módosítja az illesztést, ha kihagyjuk | Cook's > 4/n, DFBeta > 4/n |
 
 ## Befolyásvizsgálat: Cook-távolság
 
@@ -177,8 +177,10 @@ Egy eset lehet nagy leverage-ű kis maradékkal, vagy kiugró kis leverage melle
 diag <- data.frame(eset=seq_len(nrow(adat)),cook=cooks.distance(m2))
 ggplot(diag,aes(eset,cook))+geom_col(fill="#2166ac")+
  geom_hline(yintercept=4/nrow(adat),linetype="dashed",color="#b2182b")+
- labs(x="Eset sorszáma",y="Cook-távolság",caption="A 4/n vonal heurisztikus figyelmeztetés, nem automatikus törlési szabály.")
+ labs(x="Eset sorszáma",y="Cook-távolság")
 ```
+
+A 4/n vonal heurisztikus figyelmeztetés, nem automatikus törlési szabály.
 
 ## Mit tegyen szokatlan esettel?
 
@@ -187,9 +189,11 @@ ggplot(diag,aes(eset,cook))+geom_col(fill="#2166ac")+
 3. Hasonlítsa össze az indokolt elemzési változatokat.
 4. Dokumentálja a kizárás vagy megtartás okát.
 
+. . .
+
 Ne töröljön eseteket kizárólag azért, hogy jobb $p$-értéket vagy $R^2$-t kapjon.
 
-## Multikollinearitás
+## Multikollinearitás {.smaller}
 
 Erősen együttjáró prediktoroknál nehezebb elkülöníteni az egyedi meredekségeket.
 
@@ -197,12 +201,14 @@ $$VIF_j=\frac{1}{1-R_j^2},$$
 
 ahol $R_j^2$ az $X_j$ többi prediktorra történő regressziójából származik.
 
+Hüvelykujjszabály: $VIF>10$
+
 - Standard hibák nőhetnek; együtthatók instabillá válhatnak.
 - Az előrejelzés ettől még lehet jó.
 - Nincs minden helyzetben kötelező VIF-határ.
 - Prediktort ne hagyjon el kizárólag VIF alapján, ha a kutatási kérdéshez szükséges.
 
-## Diagnosztikai munkafolyamat
+## Diagnosztikai munkafolyamat {.smaller}
 
 1. Vizsgálja meg az adatok tartományát, hiányait és eloszlását.
 2. Ellenőrizze a mintatervet és a kutatási kérdést.
@@ -214,13 +220,15 @@ ahol $R_j^2$ az $X_j$ többi prediktorra történő regressziójából származi
 
 # Adatminőség
 
-## Hiányzó adatok
+## Hiányzó adatok {.smaller}
 
 - A teljeseset-elemzés csökkenti a mintát, és torzíthat, ha a hiányzás szerkezete ezt okozza.
 - A modellek között eltérő esetszám félrevezető összehasonlítást eredményezhet.
 - A hiányzó érték nem azonos a nullával.
 - Az egyszerű átlaggal pótlás alábecsülheti a bizonytalanságot és torzíthatja a kapcsolatokat.
 - Többszörös imputáció megfelelő modell és hiányzási feltevések mellett lehetséges kiterjesztés.
+
+. . .
 
 A közlésben szerepeljen az elemzett $n$ és a hiánykezelés.
 
@@ -229,6 +237,8 @@ A közlésben szerepeljen az elemzett $n$ és a hiánykezelés.
 - A klasszikus prediktormérési hiba egyszerű helyzetben gyengítheti a meredekséget; többváltozós esetben bonyolultabb torzítások lehetnek.
 - Ha a releváns elhagyott változó együtt jár a prediktorral és a kimenettel, a meredekség torzulhat a célzott értelmezéshez képest.
 - Fordított okság is sértheti az exogenitást.
+
+. . .
 
 Az elemzés minősége az adatok és a kutatási terv minőségétől is függ.
 
@@ -259,7 +269,7 @@ ggplot(ct,aes(b,tag))+geom_vline(xintercept=0,linetype="dashed")+
 
 A különböző mértékegységű együtthatók nagyságát ne kezelje automatikus fontossági rangsorként.
 
-## Mintaszöveg dinamikus eredményekkel
+## Mintaszöveg
 
 ```{r}
 #| results: asis
@@ -268,3 +278,19 @@ cat(sprintf("A szimulált mintán (%d eset) az előzetes tudás és a munkaidő 
 ```
 
 A közlés mindig nevezze meg a kontrollokat és a mértékegységeket.
+
+# Összegzés
+
+## A regresszió {.smaller}
+
+- Mire szolgál?
+- Miben különbözik a korrelációtól?
+- Egyszerű modell értelmezése (tengelymetszet, meredekség, $R^2$)
+- Hipotézisvizsgálatok (t-próbák, F-próba)
+- Bővített modellek értelmezése
+  + Dummy változók a modellben
+  + Nominális változók
+  + Ordinális változók kétféle bevonása
+  + Interakció
+  + Nemlineáris összefüggések a lineáris regresszióban
+- Regressziós modellek előteltételei
